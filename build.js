@@ -8,13 +8,15 @@ const https = require('https');
 const fs    = require('fs');
 const path  = require('path');
 
-const RSS_URL       = 'https://feeds.transistor.fm/rare-book-chat';
-const TEMPLATE      = path.join(__dirname, 'template.html');
-const OUTPUT        = path.join(__dirname, 'index.html');
-const HOLDINGS_DIR  = path.join(__dirname, 'content', 'holdings');
+const RSS_URL           = 'https://feeds.transistor.fm/rare-book-chat';
+const TEMPLATE          = path.join(__dirname, 'template.html');
+const STORY_TEMPLATE    = path.join(__dirname, 'story-template.html');
+const OUTPUT            = path.join(__dirname, 'index.html');
+const HOLDINGS_DIR      = path.join(__dirname, 'content', 'holdings');
 const HOMEPAGE_FILE     = path.join(__dirname, 'content', 'homepage.json');
 const COMING_SOON_FILE  = path.join(__dirname, 'content', 'coming-soon.json');
 const SECTIONS_DIR      = path.join(__dirname, 'content', 'sections');
+const PARTIALS_DIR      = path.join(__dirname, 'partials');
 
 // ── Fetch URL, following redirects ─────────────────────────
 function fetch(url) {
@@ -144,14 +146,13 @@ function renderSections() {
 }
 
 // ── Build the holdings grid HTML from content/holdings/*.json ──
-function renderHoldings() {
+// ── Load and sort all holdings from content/holdings/*.json ──
+function loadHoldings() {
   if (!fs.existsSync(HOLDINGS_DIR)) {
     console.error(`Holdings folder not found at ${HOLDINGS_DIR}`);
-    return '';
+    return [];
   }
-
   const files = fs.readdirSync(HOLDINGS_DIR).filter(f => f.endsWith('.json'));
-
   const holdings = files.map(file => {
     const raw = fs.readFileSync(path.join(HOLDINGS_DIR, file), 'utf8');
     try {
@@ -161,26 +162,43 @@ function renderHoldings() {
       return null;
     }
   }).filter(Boolean);
-
   holdings.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+  return holdings;
+}
 
+// A holding with a slug gets its own story page at /slug/ — that takes
+// priority over the manually-set url field, which is now just a fallback
+// for holdings that don't have a story page yet.
+function holdingUrl(h) {
+  if (h.slug && h.slug.trim()) return `/${h.slug}/`;
+  return h.url && h.url.trim() ? h.url : '#';
+}
+
+// Shared by both the homepage card and the story page's own action row,
+// so "View PDF" / "Video" / "Inquire" behave identically in both places.
+function cardActionsHtml(h) {
+  const actions = [];
+  if (h.pdf_url && h.pdf_url.trim()) {
+    const pdfTitle = h.pdf_caption ? ` title="${h.pdf_caption}"` : '';
+    actions.push(`<a class="card-action" href="${h.pdf_url}" target="_blank" rel="noopener noreferrer"${pdfTitle}>View PDF</a>`);
+  }
+  if (h.video_url && h.video_url.trim()) {
+    actions.push(`<a class="card-action" href="${h.video_url}" target="_blank" rel="noopener noreferrer">Video</a>`);
+  }
+  if (actions.length === 0) {
+    const inquireText = h.price && h.price.trim() ? h.price : 'Inquire';
+    const plainTitle = h.title.replace(/<[^>]+>/g, '');
+    const subject = encodeURIComponent(`Inquiry: ${plainTitle}`);
+    actions.push(`<a class="card-action" href="mailto:jeremy@jorarebooks.com?subject=${subject}">${inquireText}</a>`);
+  }
+  return actions.join('<span class="card-action-sep">·</span>');
+}
+
+// ── Build the holdings grid HTML ─────────────────────────────
+function renderHoldings(holdings) {
   return holdings.map(h => {
-    const url = h.url && h.url.trim() ? h.url : '#';
-
-    const actions = [];
-    if (h.pdf_url && h.pdf_url.trim()) {
-      actions.push(`<a class="card-action" href="${h.pdf_url}" target="_blank" rel="noopener noreferrer">View PDF</a>`);
-    }
-    if (h.video_url && h.video_url.trim()) {
-      actions.push(`<a class="card-action" href="${h.video_url}" target="_blank" rel="noopener noreferrer">Video</a>`);
-    }
-    if (actions.length === 0) {
-      const inquireText = h.price && h.price.trim() ? h.price : 'Inquire';
-      const plainTitle = h.title.replace(/<[^>]+>/g, '');
-      const subject = encodeURIComponent(`Inquiry: ${plainTitle}`);
-      actions.push(`<a class="card-action" href="mailto:jeremy@jorarebooks.com?subject=${subject}">${inquireText}</a>`);
-    }
-    const actionsHtml = actions.join('<span class="card-action-sep">·</span>');
+    const url = holdingUrl(h);
+    const actionsHtml = cardActionsHtml(h);
 
     return `      <div class="holding-card">
         <a class="card-img-link" href="${url}">
@@ -220,14 +238,178 @@ function renderLatestEpisode(item) {
 }
 
 // ── Main ────────────────────────────────────────────────────
+// ── Load a shared partial (masthead, footer) ─────────────────
+function loadPartial(name) {
+  const file = path.join(PARTIALS_DIR, name);
+  if (!fs.existsSync(file)) {
+    console.error(`Partial not found: ${file}`);
+    return '';
+  }
+  return fs.readFileSync(file, 'utf8');
+}
+
+// Converts a youtube.com/watch, youtu.be, or existing embed URL into an
+// embeddable URL. Returns null for anything else (Vimeo, etc.) so the
+// story page just skips the embed rather than showing a broken iframe —
+// the "Video" action link still works regardless.
+function toYouTubeEmbedUrl(url) {
+  if (!url) return null;
+  let match = url.match(/[?&]v=([\w-]+)/);
+  if (match) return `https://www.youtube.com/embed/${match[1]}`;
+  match = url.match(/youtu\.be\/([\w-]+)/);
+  if (match) return `https://www.youtube.com/embed/${match[1]}`;
+  match = url.match(/youtube\.com\/embed\/([\w-]+)/);
+  if (match) return `https://www.youtube.com/embed/${match[1]}`;
+  return null;
+}
+
+// ── Build one holding's story page ───────────────────────────
+function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml) {
+  const plainTitle = holding.title.replace(/<[^>]+>/g, '');
+  const description = (holding.description || '').replace(/<[^>]+>/g, '').slice(0, 160);
+  const canonicalUrl = `https://www.jorarebooks.com/${holding.slug}/`;
+
+  const heroImageHtml = holding.image
+    ? `<img src="/${holding.image}" alt="${holding.alt || ''}">`
+    : '';
+
+  const blocks = Array.isArray(holding.story_body) ? holding.story_body : [];
+  const bodyHtml = blocks.map(b => {
+    // Backward-compatible: older entries may just be plain strings.
+    const block = typeof b === 'string' ? { text: b } : b;
+    const parts = [];
+    if (block.heading) parts.push(`      <h2 class="story-subhead">${block.heading}</h2>`);
+    if (block.text) parts.push(`      <p>${block.text}</p>`);
+    if (block.quote) parts.push(`      <blockquote class="story-quote">${block.quote}</blockquote>`);
+    if (block.image) {
+      parts.push(`      <figure class="story-inline-image">
+        <img src="/${block.image}" alt="${block.image_alt || ''}">
+        ${block.image_caption ? `<figcaption class="story-gallery-caption">${block.image_caption}</figcaption>` : ''}
+      </figure>`);
+    }
+    return parts.join('\n');
+  }).filter(Boolean).join('\n');
+
+  const embedUrl = toYouTubeEmbedUrl(holding.video_url);
+  const videoHtml = embedUrl
+    ? `<div class="story-video">
+      <div class="story-video-frame">
+        <iframe src="${embedUrl}" title="${plainTitle}" allowfullscreen></iframe>
+      </div>
+    </div>`
+    : '';
+
+  const gallery = Array.isArray(holding.gallery) ? holding.gallery : [];
+  const galleryHtml = gallery.length
+    ? `<div class="story-gallery">
+${gallery.map(g => `      <figure class="story-gallery-item">
+        <img src="/${g.image}" alt="${g.alt || ''}">
+        ${g.caption ? `<figcaption class="story-gallery-caption">${g.caption}</figcaption>` : ''}
+      </figure>`).join('\n')}
+    </div>`
+    : '';
+
+  const pdfReminderHtml = (holding.pdf_url && holding.pdf_url.trim())
+    ? `<p class="story-pdf-reminder">Full description${holding.pdf_caption ? ' — ' + holding.pdf_caption : ''}. <a href="${holding.pdf_url}" target="_blank" rel="noopener noreferrer">View PDF</a></p>`
+    : '';
+
+  // Everything that scrolls goes in one column — body, video, gallery, and
+  // the closing PDF reminder — so that when the PDF card sits alongside it,
+  // its sticky position spans the whole read, not just the opening text.
+  const mainContentHtml = `<div class="story-body">
+${bodyHtml}
+      </div>
+      ${videoHtml}
+      ${galleryHtml}
+      ${pdfReminderHtml}`;
+
+  // The PDF gets its own cover card beside the text, but only if there's
+  // actually a cover image to show — otherwise "View PDF" in the actions
+  // row below is enough, and the column just runs single-width.
+  const hasPdfCard = !!(holding.pdf_url && holding.pdf_url.trim() && holding.pdf_cover_image && holding.pdf_cover_image.trim());
+  const pdfCaptionHtml = holding.pdf_caption
+    ? `<span class="story-pdf-caption">${holding.pdf_caption}</span>`
+    : '';
+  const pdfCardHtml = hasPdfCard
+    ? `<aside class="story-pdf-card">
+        <a href="${holding.pdf_url}" target="_blank" rel="noopener noreferrer">
+          <img src="/${holding.pdf_cover_image}" alt="Cover of the PDF">
+        </a>
+        <a class="story-pdf-link" href="${holding.pdf_url}" target="_blank" rel="noopener noreferrer">View PDF ↓</a>
+        ${pdfCaptionHtml}
+      </aside>`
+    : '';
+
+  const layoutHtml = hasPdfCard
+    ? `<div class="story-layout">
+      <div class="story-main">
+        ${mainContentHtml}
+      </div>
+      ${pdfCardHtml}
+    </div>`
+    : `<div class="story-main">
+      ${mainContentHtml}
+    </div>`;
+
+  const actionsHtml = cardActionsHtml(holding);
+
+  // Prev/next only among holdings that actually have a story page.
+  const storyHoldings = allHoldings.filter(h => h.slug && h.slug.trim());
+  const idx = storyHoldings.findIndex(h => h.slug === holding.slug);
+  const prev = idx > 0 ? storyHoldings[idx - 1] : null;
+  const next = idx >= 0 && idx < storyHoldings.length - 1 ? storyHoldings[idx + 1] : null;
+
+  const prevHtml = prev
+    ? `<a class="story-prev" href="/${prev.slug}/">← ${prev.title.replace(/<[^>]+>/g, '')}</a>`
+    : '<span></span>';
+  const nextHtml = next
+    ? `<a class="story-next" href="/${next.slug}/">${next.title.replace(/<[^>]+>/g, '')} →</a>`
+    : '';
+
+  let output = fs.readFileSync(STORY_TEMPLATE, 'utf8');
+
+  const required = [
+    '<!-- MASTHEAD -->', '<!-- FOOTER -->', '<!-- STORY_HERO_IMAGE -->',
+    '<!-- STORY_TITLE -->', '<!-- STORY_LAYOUT -->',
+    '<!-- STORY_ACTIONS -->', '<!-- STORY_PREV -->', '<!-- STORY_NEXT -->'
+  ];
+  for (const marker of required) {
+    if (!output.includes(marker)) {
+      console.error(`story-template.html is missing the ${marker} placeholder.`);
+      process.exit(1);
+    }
+  }
+
+  output = output
+    .replace('<!-- PAGE_TITLE -->', plainTitle)
+    .replace('<!-- PAGE_DESCRIPTION -->', description)
+    .replace('<!-- CANONICAL_URL -->', canonicalUrl)
+    .replace('<!-- MASTHEAD -->', mastheadHtml)
+    .replace('<!-- STORY_HERO_IMAGE -->', heroImageHtml)
+    .replace('<!-- STORY_TITLE -->', holding.title)
+    .replace('<!-- STORY_LAYOUT -->', layoutHtml)
+    .replace('<!-- STORY_ACTIONS -->', actionsHtml)
+    .replace('<!-- STORY_PREV -->', prevHtml)
+    .replace('<!-- STORY_NEXT -->', nextHtml)
+    .replace('<!-- FOOTER -->', footerHtml);
+
+  return output;
+}
+
 async function build() {
+  console.log('Loading shared partials...');
+  const mastheadHtml = loadPartial('masthead.html');
+  const footerHtml = loadPartial('footer.html');
+  const footerHomeHtml = loadPartial('footer-home.html');
+
   console.log('Rendering homepage content...');
   const homepageData = loadHomepage();
   const heroHtml = renderHero(homepageData);
   const introHtml = renderIntro(homepageData);
 
-  console.log('Rendering holdings...');
-  const holdingsHtml = renderHoldings();
+  console.log('Loading holdings...');
+  const holdings = loadHoldings();
+  const holdingsHtml = renderHoldings(holdings);
 
   console.log('Rendering sections...');
   const sectionsHtml = renderSections();
@@ -281,6 +463,14 @@ async function build() {
     console.error('Template is missing the <!-- COMING_SOON --> placeholder.');
     process.exit(1);
   }
+  if (!output.includes('<!-- MASTHEAD -->')) {
+    console.error('Template is missing the <!-- MASTHEAD --> placeholder.');
+    process.exit(1);
+  }
+  if (!output.includes('<!-- FOOTER -->')) {
+    console.error('Template is missing the <!-- FOOTER --> placeholder.');
+    process.exit(1);
+  }
 
   output = output.replace('<!-- LATEST EPISODE -->', latestHtml);
   output = output.replace('<!-- HOLDINGS -->', holdingsHtml);
@@ -288,13 +478,24 @@ async function build() {
   output = output.replace('<!-- INTRO -->', introHtml);
   output = output.replace('<!-- SECTIONS -->', sectionsHtml);
   output = output.replace('<!-- COMING_SOON -->', comingSoonHtml);
+  output = output.replace('<!-- MASTHEAD -->', mastheadHtml);
+  output = output.replace('<!-- FOOTER -->', footerHomeHtml);
 
   fs.writeFileSync(OUTPUT, output, 'utf8');
 
-  console.log('\nDone. Deploy the following files to Netlify:');
-  console.log('  index.html');
-  console.log('  HERO.jpg');
-  console.log('  GODFATHER.jpeg');
+  console.log('Building story pages...');
+  const storyHoldings = holdings.filter(h => h.slug && h.slug.trim());
+  for (const holding of storyHoldings) {
+    const storyHtml = renderStoryPage(holding, holdings, mastheadHtml, footerHtml);
+    const outDir = path.join(__dirname, holding.slug);
+    fs.mkdirSync(outDir, { recursive: true });
+    fs.writeFileSync(path.join(outDir, 'index.html'), storyHtml, 'utf8');
+    console.log(`  /${holding.slug}/`);
+  }
+
+  console.log('\nDone. Deploy the following to Netlify:');
+  console.log('  index.html, styles.css, and every holding\'s image');
+  console.log(`  plus a folder per story page: ${storyHoldings.map(h => h.slug).join(', ') || '(none yet)'}`);
   console.log(`\nBuilt at: ${new Date().toLocaleString()}`);
 }
 

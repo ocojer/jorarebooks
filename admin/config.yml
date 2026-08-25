@@ -83,6 +83,16 @@ collections:
         widget: "string"
         required: false
         hint: "Link to a PDF (condition report, provenance, etc). If set, shows as \"View PDF\" instead of the price/inquire line."
+      - label: "PDF cover image (optional)"
+        name: "pdf_cover_image"
+        widget: "image"
+        required: false
+        hint: "Only used on the story page — if set (and a PDF is linked above), shows the cover alongside the story text with its own download link. Leave blank to skip this."
+      - label: "What the PDF contains (optional)"
+        name: "pdf_caption"
+        widget: "string"
+        required: false
+        hint: "A short line under the PDF link on the story page, e.g. \"Complete archive description, correspondence, and formal bibliographic listing.\" Makes clear the story text is a shorter version and the PDF is the full record. Leave blank to skip."
       - label: "Video (optional)"
         name: "video_url"
         widget: "string"
@@ -97,8 +107,34 @@ collections:
         name: "url"
         widget: "string"
         required: false
-        hint: "Leave as # until this holding has its own story page."
+        hint: "Only used if there's no story page slug below. Leave as # until then."
         default: "#"
+      - label: "Story page slug (optional)"
+        name: "slug"
+        widget: "string"
+        required: false
+        hint: "Gives this holding its own page, e.g. \"harry-potter\" makes jorarebooks.com/harry-potter/. Leave blank if it shouldn't have one yet. Use lowercase letters, numbers, and hyphens only — no spaces."
+      - label: "Story page text"
+        name: "story_body"
+        widget: "list"
+        required: false
+        hint: "Add blocks in order, top to bottom, in whatever mix the piece calls for. Each block can be a heading, a paragraph, a pull-quote, or an image — fill in only the one you want for that block, leave the others blank. Only used if a slug is set above."
+        fields:
+          - {label: "Heading (optional)", name: "heading", widget: "string", required: false, hint: "A short section title, e.g. \"The Collaborators\""}
+          - {label: "Paragraph (optional)", name: "text", widget: "text", required: false}
+          - {label: "Pull-quote (optional)", name: "quote", widget: "text", required: false, hint: "A short standout line, shown larger and set apart. Include attribution in the text itself if needed."}
+          - {label: "Image (optional)", name: "image", widget: "image", required: false, hint: "Drops a photo in at this point in the story, right where it's relevant."}
+          - {label: "Image alt text (optional)", name: "image_alt", widget: "string", required: false}
+          - {label: "Image caption (optional)", name: "image_caption", widget: "string", required: false}
+      - label: "Additional photos (optional)"
+        name: "gallery"
+        widget: "list"
+        required: false
+        hint: "Extra photos shown further down the story page, each with its own caption."
+        fields:
+          - {label: "Photo", name: "image", widget: "image"}
+          - {label: "Photo alt text", name: "alt", widget: "string", required: false}
+          - {label: "Caption", name: "caption", widget: "string", required: false}
 
   - name: "sections"
     label: "Feature Sections"

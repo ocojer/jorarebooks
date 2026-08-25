@@ -518,6 +518,243 @@
 
     .about-inner p:last-child { margin-bottom: 0; }
 
+    /* ── STORY PAGES ── */
+
+    /* Story hero runs narrower than the homepage's full-bleed one — sized
+       to feel proportionate to the reading column below it, not the full
+       viewport. Now sits inside .page (below the title), so it inherits
+       that container's width/gutter rather than setting its own. */
+    .story-hero-figure {
+      margin: 0 0 clamp(2.5rem, 5vw, 3.5rem);
+    }
+
+    .story-hero {
+      width: 100%;
+      height: clamp(220px, 32vw, 420px);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .story-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+      display: block;
+    }
+
+    .story-back {
+      display: inline-block;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--light);
+      margin-top: clamp(1rem, 3vw, 2rem);
+      margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+
+    .story-back:hover { color: var(--ink); }
+
+    .story-title {
+      font-family: var(--font-display);
+      font-size: var(--size-headline);
+      font-weight: 400;
+      line-height: 1.2;
+      color: var(--ink);
+      margin-bottom: clamp(1.75rem, 4vw, 2.5rem);
+      max-width: 800px;
+    }
+
+    /* story-main holds everything that scrolls — body text, video,
+       gallery, the closing PDF reminder — all at one consistent width.
+       When a PDF card sits beside it (.story-layout), story-main becomes
+       the grid's left column instead and this max-width is redundant but
+       harmless. */
+    .story-main {
+      max-width: 700px;
+      font-size: 1rem;
+      color: var(--mid);
+      line-height: 1.85;
+    }
+
+    .story-body p {
+      margin-bottom: 1.25rem;
+    }
+
+    .story-body p:last-child { margin-bottom: 0; }
+
+    .story-subhead {
+      font-family: var(--font-body);
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--light);
+      font-weight: 500;
+      margin: clamp(2.5rem, 5vw, 3.5rem) 0 1.25rem;
+    }
+
+    .story-body > .story-subhead:first-child { margin-top: 0; }
+
+    .story-quote {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+      color: var(--ink);
+      line-height: 1.6;
+      border-left: 2px solid var(--border);
+      padding-left: 1.5rem;
+      margin: 1.75rem 0;
+    }
+
+    .story-inline-image {
+      margin: 1.75rem 0;
+    }
+
+    .story-inline-image img {
+      width: 100%;
+      display: block;
+      border: 1px solid var(--border);
+    }
+
+    .story-video {
+      margin: clamp(2rem, 5vw, 3rem) 0;
+    }
+
+    .story-gallery {
+      margin: clamp(2rem, 5vw, 3rem) 0;
+    }
+
+    .story-gallery-item { margin-bottom: 2rem; }
+    .story-gallery-item:last-child { margin-bottom: 0; }
+
+    .story-gallery-item img {
+      width: 100%;
+      display: block;
+      border: 1px solid var(--border);
+    }
+
+    .story-gallery-caption {
+      font-size: 0.68rem;
+      color: var(--light);
+      line-height: 1.6;
+      padding-top: 0.5rem;
+    }
+
+    .story-pdf-reminder {
+      font-size: 0.78rem;
+      color: var(--light);
+      margin-top: 2rem;
+    }
+
+    .story-pdf-reminder a {
+      color: var(--ink);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1px;
+    }
+
+    /* The grid itself is the sticky positioning context — since story-main
+       (body + video + gallery + reminder) is the tallest thing in the row,
+       the PDF card stays pinned for the full length of that column, not
+       just past the opening paragraphs. */
+    .story-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 700px) 240px;
+      gap: clamp(2rem, 5vw, 3.5rem);
+      align-items: start;
+    }
+
+    .story-layout .story-main {
+      max-width: none;
+    }
+
+    .story-pdf-card {
+      position: sticky;
+      top: 2rem;
+      margin-top: 2rem;
+    }
+
+    .story-pdf-card a { display: block; }
+
+    .story-pdf-card img {
+      width: 100%;
+      display: block;
+      border: 1px solid var(--border);
+    }
+
+    .story-pdf-link {
+      display: block;
+      text-align: center;
+      margin-top: 0.75rem;
+      font-size: 0.63rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--light);
+      transition: color 0.2s;
+    }
+
+    .story-pdf-link:hover { color: var(--ink); }
+
+    .story-pdf-caption {
+      display: block;
+      text-align: center;
+      margin-top: 0.5rem;
+      font-size: 0.62rem;
+      color: var(--light);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+      .story-layout { grid-template-columns: 1fr; }
+      .story-pdf-card { position: static; max-width: 240px; margin-bottom: 1rem; }
+    }
+
+    .story-video-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #f0ede8;
+      border: 1px solid var(--border);
+    }
+
+    .story-video-frame iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .story-actions {
+      max-width: 700px;
+      padding-top: clamp(2rem, 5vw, 3rem);
+      margin-top: clamp(2rem, 5vw, 3rem);
+      border-top: 1px solid var(--border);
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .story-nav {
+      max-width: 700px;
+      margin-top: clamp(2.5rem, 6vw, 4rem);
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--light);
+    }
+
+    .story-nav a { transition: color 0.2s; }
+    .story-nav a:hover { color: var(--ink); }
+    .story-nav .story-next { text-align: right; margin-left: auto; }
+
     /* ── MOBILE ── */
     @media (max-width: 480px) {
       .masthead-nav { margin-left: 0; }

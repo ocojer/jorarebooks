@@ -98,6 +98,36 @@ Full-width blocks below the holdings grid — same 1600px width, stacked in
 
 Add more files to add more sections — they render one below the next.
 
+## Story pages
+
+Any holding can get its own page at jorarebooks.com/its-slug/ by setting a
+**Story page slug** in `/admin` (or adding `"slug": "its-slug"` to its JSON
+file by hand). Once set, `build.js` generates `its-slug/index.html`
+automatically on every deploy — nothing else to configure.
+
+**Story page text** is a list of blocks, each one a heading, a paragraph, a
+pull-quote, or an image — add as many as the piece needs, in whatever order
+and mix makes sense, reorder or delete freely. Fill in only the field that
+matches what you want that block to be.
+
+**PDF card**: if a holding has both a PDF link and a PDF cover image set,
+the story page shows the cover alongside the text with its own download
+link, sticky as the page scrolls. Without a cover image, "View PDF" just
+appears in the actions row instead — no story page requires this.
+
+**Video**: a YouTube link in the Video field embeds directly on the story
+page, sized to match the text column.
+
+**Prev/next**: automatic, based on each holding's `order` field, among
+whichever holdings currently have a slug set.
+
+**Shared layout**: `partials/masthead.html` and `partials/footer.html` are
+injected into every page — the homepage *and* every story page — so a
+masthead change updates everywhere at once. The homepage additionally uses
+`partials/footer-home.html`, which adds the Pawn Stars paragraph; story
+pages use the plain `footer.html` without it, so that story doesn't repeat
+on every page.
+
 ## Design tokens
 
 `styles.css` defines, in `:root`:
@@ -106,20 +136,18 @@ Add more files to add more sections — they render one below the next.
 - `--ink` / `--mid` / `--light` / `--border` / `--white` — the grayscale palette
 - `--size-italic` — the shared size for intro text, podcast episode blurbs,
   and the Pawn Stars footnote
-- `--size-headline`, `--size-body`, `--size-label` — reserved for the next
-  pass of unifying the remaining one-off font sizes across the site (see
-  Open Items below)
+- `--size-headline` — used by story page titles (`.story-title`)
+- `--size-body`, `--size-label` — reserved for a future pass of unifying
+  the remaining one-off font sizes on the homepage (see Open Items below)
 
 ## Open items from Session 1
 
 - Several small text sizes on the current homepage (card descriptions,
   section labels, the About panel) are still hardcoded one-offs rather than
   drawing from `--size-body` / `--size-label` — they're close but not
-  identical to the standardized values (e.g. `.card-desc` is `0.8rem` vs.
-  the `--size-body` token of `0.88rem`). Left untouched this session so
-  nothing shifts visually without a side-by-side review first.
-- `.card-title` (`clamp(0.95rem, 1.8vw, 1.1rem)`) is smaller than the
-  `--size-headline` token (`clamp(1.5rem, 3vw, 2rem)`) documented for
-  "holding headlines" — the token is sized for future full story pages;
-  the compact grid card intentionally runs smaller. Worth confirming that's
-  still the intent once story pages exist.
+  identical to the standardized values (e.g. `.card-desc` is `0.72rem` vs.
+  the `--size-body` token of `0.88rem`). Left untouched so nothing shifts
+  visually without a side-by-side review first.
+- `.card-title` (`clamp(0.95rem, 1.8vw, 1.1rem)`) is intentionally smaller
+  than `--size-headline` — that token is now in active use for story page
+  titles, and the compact grid card still runs smaller by design.
