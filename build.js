@@ -12,8 +12,9 @@ const RSS_URL       = 'https://feeds.transistor.fm/rare-book-chat';
 const TEMPLATE      = path.join(__dirname, 'template.html');
 const OUTPUT        = path.join(__dirname, 'index.html');
 const HOLDINGS_DIR  = path.join(__dirname, 'content', 'holdings');
-const HOMEPAGE_FILE = path.join(__dirname, 'content', 'homepage.json');
-const SECTIONS_DIR  = path.join(__dirname, 'content', 'sections');
+const HOMEPAGE_FILE     = path.join(__dirname, 'content', 'homepage.json');
+const COMING_SOON_FILE  = path.join(__dirname, 'content', 'coming-soon.json');
+const SECTIONS_DIR      = path.join(__dirname, 'content', 'sections');
 
 // ── Fetch URL, following redirects ─────────────────────────
 function fetch(url) {
@@ -85,6 +86,23 @@ function renderIntro(data) {
     ? `    <p class="intro" style="text-align:right; padding-right:3rem; margin-top:0.5rem; margin-bottom:clamp(2rem, 5vw, 3rem);">${data.signoff}</p>`
     : '';
   return [paraHtml, signoffHtml].filter(Boolean).join('\n');
+}
+
+function renderComingSoon() {
+  if (!fs.existsSync(COMING_SOON_FILE)) {
+    console.error(`Coming-soon content file not found at ${COMING_SOON_FILE}`);
+    return '';
+  }
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(COMING_SOON_FILE, 'utf8'));
+  } catch (e) {
+    console.error(`Invalid JSON in ${COMING_SOON_FILE}: ${e.message}`);
+    return '';
+  }
+  const note = data.note ? `      <p>${data.note}</p>` : '';
+  const comingSoonText = data.coming_soon_text ? `      <p>${data.coming_soon_text}</p>` : '';
+  return [note, comingSoonText].filter(Boolean).join('\n');
 }
 
 // ── Build stacked wide sections from content/sections/*.json ──
@@ -214,6 +232,9 @@ async function build() {
   console.log('Rendering sections...');
   const sectionsHtml = renderSections();
 
+  console.log('Rendering coming-soon text...');
+  const comingSoonHtml = renderComingSoon();
+
   console.log('Fetching RSS feed...');
 
   let rss;
@@ -256,12 +277,17 @@ async function build() {
     console.error('Template is missing the <!-- SECTIONS --> placeholder.');
     process.exit(1);
   }
+  if (!output.includes('<!-- COMING_SOON -->')) {
+    console.error('Template is missing the <!-- COMING_SOON --> placeholder.');
+    process.exit(1);
+  }
 
   output = output.replace('<!-- LATEST EPISODE -->', latestHtml);
   output = output.replace('<!-- HOLDINGS -->', holdingsHtml);
   output = output.replace('<!-- HERO_IMAGE -->', heroHtml);
   output = output.replace('<!-- INTRO -->', introHtml);
   output = output.replace('<!-- SECTIONS -->', sectionsHtml);
+  output = output.replace('<!-- COMING_SOON -->', comingSoonHtml);
 
   fs.writeFileSync(OUTPUT, output, 'utf8');
 

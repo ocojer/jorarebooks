@@ -33,6 +33,19 @@ collections:
             required: false
             hint: "Sits right-aligned below the intro, e.g. — Jeremy"
 
+      - name: "coming_soon"
+        label: "Further Holdings / Coming Soon Text"
+        file: "content/coming-soon.json"
+        fields:
+          - label: "Note"
+            name: "note"
+            widget: "string"
+            hint: "Short line above the Coming Soon paragraph, e.g. Further holdings available. Inquiries welcome."
+          - label: "Coming soon text"
+            name: "coming_soon_text"
+            widget: "text"
+            hint: "Wrap any phrase in <strong> and </strong> to bold it, e.g. <strong>An archive documenting...</strong>"
+
   - name: "holdings"
     label: "Current Holdings"
     label_singular: "Holding"

@@ -98,12 +98,11 @@
     }
 
     /* ── WIDE BREAKOUT ── */
-    /* Breaks a section out of the narrow --measure text column so it can
-       run wider, up to 1600px, while everything else on the page stays at
-       the comfortable reading width. Shared by the holdings grid and the
-       stacked feature sections below it, so both align to the same edges. */
-    .holdings-breakout,
-    .sections-breakout {
+    /* Breaks the holdings grid out of the narrow --measure text column so
+       it can run wider, up to 1600px, while everything else on the page —
+       including the feature sections below it — stays at the comfortable
+       reading width. */
+    .holdings-breakout {
       width: 100vw;
       margin-left: calc(-50vw + 50%);
       margin-right: calc(-50vw + 50%);
@@ -147,7 +146,6 @@
     }
 
     .holding-card {
-      border: 1px solid var(--border);
       display: flex;
       flex-direction: column;
     }
