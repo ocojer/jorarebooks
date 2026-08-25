@@ -7,6 +7,32 @@ media_folder: ""
 public_folder: "/"
 
 collections:
+  - name: "homepage"
+    label: "Homepage"
+    files:
+      - name: "hero_and_intro"
+        label: "Hero Image & Intro Text"
+        file: "content/homepage.json"
+        fields:
+          - label: "Hero Photo"
+            name: "hero_image"
+            widget: "image"
+            hint: "The large photo at the top of the homepage."
+          - label: "Hero Photo alt text"
+            name: "hero_alt"
+            widget: "string"
+            required: false
+            hint: "A short description of the photo, for accessibility and search engines."
+          - label: "Intro paragraphs"
+            name: "intro_paragraphs"
+            widget: "list"
+            hint: "One entry per paragraph. Use the + button to add another, or the trash icon to remove one."
+          - label: "Sign-off"
+            name: "signoff"
+            widget: "string"
+            required: false
+            hint: "Sits right-aligned below the intro, e.g. — Jeremy"
+
   - name: "holdings"
     label: "Current Holdings"
     label_singular: "Holding"

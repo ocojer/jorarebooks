@@ -30,13 +30,23 @@ Push to `main`. Netlify is connected to this repo and rebuilds automatically —
 it runs `node build.js` itself, so the live site always has the latest
 episode baked in without you running anything locally.
 
+## Editing the homepage
+
+1. **Browser** — go to `jorarebooks.com/admin`, log in with your GitHub
+   account (`ocojer`). You'll see two sections:
+   - **Homepage** — the hero photo and the intro paragraphs below it.
+   - **Current Holdings** — add, edit, or remove holdings, including photos.
+2. **By hand** — the hero and intro live in `content/homepage.json`; each
+   holding is its own file in `content/holdings/`.
+
+Either way, `build.js` reads these files at build time and generates the
+page — nothing in `template.html` needs to change.
+
 ## Editing holdings
 
 Two ways to do this:
 
-1. **Browser** — go to `jorarebooks.com/admin`, log in with your GitHub
-   account (`ocojer`), and add, edit, or remove holdings there, including
-   uploading photos. This commits straight to GitHub and Netlify deploys it.
+1. **Browser** — same `/admin` page as above, under Current Holdings.
 2. **By hand** — each holding is a small JSON file in `content/holdings/`.
    Add a new one, or edit an existing one, following the same shape:
 

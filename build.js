@@ -12,6 +12,7 @@ const RSS_URL       = 'https://feeds.transistor.fm/rare-book-chat';
 const TEMPLATE      = path.join(__dirname, 'template.html');
 const OUTPUT        = path.join(__dirname, 'index.html');
 const HOLDINGS_DIR  = path.join(__dirname, 'content', 'holdings');
+const HOMEPAGE_FILE = path.join(__dirname, 'content', 'homepage.json');
 
 // ── Fetch URL, following redirects ─────────────────────────
 function fetch(url) {
@@ -53,6 +54,36 @@ function getTag(xml, tag) {
     if (m) return m[1].trim();
   }
   return '';
+}
+
+// ── Load content/homepage.json (hero image + intro text) ────
+function loadHomepage() {
+  if (!fs.existsSync(HOMEPAGE_FILE)) {
+    console.error(`Homepage content file not found at ${HOMEPAGE_FILE}`);
+    return {};
+  }
+  try {
+    return JSON.parse(fs.readFileSync(HOMEPAGE_FILE, 'utf8'));
+  } catch (e) {
+    console.error(`Invalid JSON in ${HOMEPAGE_FILE}: ${e.message}`);
+    return {};
+  }
+}
+
+function renderHero(data) {
+  if (!data.hero_image) return '';
+  return `<img src="${data.hero_image}" alt="${data.hero_alt || ''}">`;
+}
+
+function renderIntro(data) {
+  const paragraphs = Array.isArray(data.intro_paragraphs) ? data.intro_paragraphs : [];
+  const paraHtml = paragraphs
+    .map(p => `    <p class="intro" style="margin-bottom:0.3rem;">${p}</p>`)
+    .join('\n');
+  const signoffHtml = data.signoff
+    ? `    <p class="intro" style="text-align:right; padding-right:3rem; margin-top:0.5rem; margin-bottom:clamp(2rem, 5vw, 3rem);">${data.signoff}</p>`
+    : '';
+  return [paraHtml, signoffHtml].filter(Boolean).join('\n');
 }
 
 // ── Build the holdings grid HTML from content/holdings/*.json ──
@@ -116,6 +147,11 @@ function renderLatestEpisode(item) {
 
 // ── Main ────────────────────────────────────────────────────
 async function build() {
+  console.log('Rendering homepage content...');
+  const homepageData = loadHomepage();
+  const heroHtml = renderHero(homepageData);
+  const introHtml = renderIntro(homepageData);
+
   console.log('Rendering holdings...');
   const holdingsHtml = renderHoldings();
 
@@ -149,9 +185,19 @@ async function build() {
     console.error('Template is missing the <!-- HOLDINGS --> placeholder.');
     process.exit(1);
   }
+  if (!output.includes('<!-- HERO_IMAGE -->')) {
+    console.error('Template is missing the <!-- HERO_IMAGE --> placeholder.');
+    process.exit(1);
+  }
+  if (!output.includes('<!-- INTRO -->')) {
+    console.error('Template is missing the <!-- INTRO --> placeholder.');
+    process.exit(1);
+  }
 
   output = output.replace('<!-- LATEST EPISODE -->', latestHtml);
   output = output.replace('<!-- HOLDINGS -->', holdingsHtml);
+  output = output.replace('<!-- HERO_IMAGE -->', heroHtml);
+  output = output.replace('<!-- INTRO -->', introHtml);
 
   fs.writeFileSync(OUTPUT, output, 'utf8');
 
