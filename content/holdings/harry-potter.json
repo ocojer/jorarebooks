@@ -1,17 +1,49 @@
 {
-  "order": 1,
-  "title": "Before the Phenomenon: The Earliest Known Printing of <em>Harry Potter and the Philosopher's Stone</em>",
-  "description": "The galley sheets printed at Bloomsbury on 25 February 1997 — the only known surviving copy of the earliest printing in any form.",
-  "image": "HERO.jpg",
+  "title": "The Dawn of New Hollywood: Fred Roos Casting & Production Archive",
+  "description": "A comprehensive working archive documenting the casting and production processes of Fred Roos, spanning more than six transformative decades of American filmmaking.",
+  "image": "GODFATHER.jpeg",
   "alt": "Harry Potter galley sheets, 1997",
   "price": "Inquire",
+  "pdf_url": "",
+  "pdf_cover_image": "",
+  "pdf_caption": "",
+  "video_url": "",
+  "order": 1,
   "url": "#",
   "slug": "harry-potter",
   "story_body": [
-    {"text": "In February 1997, a small London publisher printed the galley sheets for a first novel by an unknown author. Bloomsbury's initial U.K. print run would run to only 500 copies, mostly sent to libraries. Nobody involved yet knew what they were holding — this was still just a manuscript proof making its way toward print, months before the world had any reason to know the name Harry Potter."},
-    {"text": "[DRAFT — replace with the real detail: what exactly survives here — page count, format, any printer's marks or corrections, how you can tell it predates the finished first edition.]"},
-    {"text": "This is the only known surviving copy of that earliest printing, in any form. Galley proofs are working documents, not built to last — most are discarded once the real print run begins. That this one survived at all is what makes it extraordinary."},
-    {"text": "[DRAFT — replace with your own note: how this piece came to you, what it was like to hold it the first time, or anything else in your voice. This is exactly the kind of 'living pulse' moment the homepage intro talks about.]"}
+    {
+      "heading": "",
+      "text": "In February 1997, a small London publisher printed the galley sheets for a first novel by an unknown author. Bloomsbury's initial U.K. print run would run to only 500 copies, mostly sent to libraries. Nobody involved yet knew what they were holding — this was still just a manuscript proof making its way toward print, months before the world had any reason to know the name Harry Potter.",
+      "quote": "",
+      "image": "",
+      "image_alt": "",
+      "image_caption": ""
+    },
+    {
+      "heading": "",
+      "text": "[DRAFT — replace with the real detail: what exactly survives here — page count, format, any printer's marks or corrections, how you can tell it predates the finished first edition.]",
+      "quote": "",
+      "image": "",
+      "image_alt": "",
+      "image_caption": ""
+    },
+    {
+      "heading": "",
+      "text": "This is the only known surviving copy of that earliest printing, in any form. Galley proofs are working documents, not built to last — most are discarded once the real print run begins. That this one survived at all is what makes it extraordinary.",
+      "quote": "",
+      "image": "",
+      "image_alt": "",
+      "image_caption": ""
+    },
+    {
+      "heading": "",
+      "text": "[DRAFT — replace with your own note: how this piece came to you, what it was like to hold it the first time, or anything else in your voice. This is exactly the kind of 'living pulse' moment the homepage intro talks about.]",
+      "quote": "",
+      "image": "",
+      "image_alt": "",
+      "image_caption": ""
+    }
   ],
   "gallery": []
 }
