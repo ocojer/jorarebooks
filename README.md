@@ -30,6 +30,35 @@ Push to `main`. Netlify is connected to this repo and rebuilds automatically —
 it runs `node build.js` itself, so the live site always has the latest
 episode baked in without you running anything locally.
 
+## Editing holdings
+
+Two ways to do this:
+
+1. **Browser** — go to `jorarebooks.com/admin`, log in with your GitHub
+   account (`ocojer`), and add, edit, or remove holdings there, including
+   uploading photos. This commits straight to GitHub and Netlify deploys it.
+2. **By hand** — each holding is a small JSON file in `content/holdings/`.
+   Add a new one, or edit an existing one, following the same shape:
+
+   ```json
+   {
+     "order": 4,
+     "title": "Holding title — wrap in <em></em> for italics",
+     "description": "One or two sentences.",
+     "image": "SOMEFILE.jpg",
+     "alt": "Short description of the photo",
+     "price": "Inquire for price",
+     "url": "#"
+   }
+   ```
+
+   `order` controls where it falls in the grid (lower numbers first). If
+   `image` points to a file that isn't in the repo, the card falls back to a
+   plain color block automatically — same as it always has.
+
+Either way, `build.js` reads every file in `content/holdings/` at build time
+and generates the grid — nothing in `template.html` needs to change.
+
 ## Design tokens
 
 `styles.css` defines, in `:root`:

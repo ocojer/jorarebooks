@@ -1,0 +1,51 @@
+backend:
+  name: github
+  repo: ocojer/jorarebooks
+  branch: main
+
+media_folder: ""
+public_folder: "/"
+
+collections:
+  - name: "holdings"
+    label: "Current Holdings"
+    label_singular: "Holding"
+    folder: "content/holdings"
+    create: true
+    extension: "json"
+    format: "json"
+    slug: "{{slug}}"
+    summary: "{{order}} — {{title}}"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+        hint: "Plain text. Wrap a book title in <em> and </em> to italicize it, e.g. <em>Harry Potter and the Philosopher's Stone</em>"
+      - label: "Description"
+        name: "description"
+        widget: "text"
+      - label: "Photo"
+        name: "image"
+        widget: "image"
+        hint: "Upload a photo of the item. If left blank, the card shows a plain color block instead."
+        required: false
+      - label: "Photo alt text"
+        name: "alt"
+        widget: "string"
+        hint: "A short description of the photo, for accessibility and search engines."
+        required: false
+      - label: "Price or availability note"
+        name: "price"
+        widget: "string"
+        default: "Inquire for price"
+      - label: "Display order"
+        name: "order"
+        widget: "number"
+        hint: "Lower numbers show first. Use 1, 2, 3... to set the sequence."
+        default: 10
+      - label: "Link (optional)"
+        name: "url"
+        widget: "string"
+        required: false
+        hint: "Leave as # until this holding has its own story page."
+        default: "#"
