@@ -6,7 +6,7 @@
       --light:  #888888;
       --border: #e8e8e8;
       --white:  #ffffff;
-      --measure: 900px;
+      --measure: 1140px;
       --gutter: clamp(24px, 6vw, 80px);
 
       /* design tokens — added Session 1 */
