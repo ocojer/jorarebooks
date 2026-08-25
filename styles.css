@@ -1,0 +1,486 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:    #111111;
+      --mid:    #444444;
+      --light:  #888888;
+      --border: #e8e8e8;
+      --white:  #ffffff;
+      --measure: 900px;
+      --gutter: clamp(24px, 6vw, 80px);
+
+      /* design tokens — added Session 1 */
+      --font-display: 'Cormorant Garamond', serif;
+      --font-body: 'DM Sans', system-ui, sans-serif;
+      --size-headline: clamp(1.5rem, 3vw, 2rem);
+      --size-body: 0.88rem;
+      --size-italic: clamp(1rem, 2vw, 1.15rem);
+      --size-label: 0.65rem;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      background: var(--white);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── MASTHEAD ── */
+    .masthead {
+      padding: 1.75rem var(--gutter) 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .masthead-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 0.1rem;
+    }
+
+    .masthead-name {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 3vw, 1.8rem);
+      font-weight: 400;
+      letter-spacing: 0.01em;
+      color: var(--ink);
+    }
+
+    .masthead-tagline {
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--light);
+      font-weight: 300;
+    }
+
+    /* ── HERO IMAGE ── */
+    .hero-figure {
+      width: 100%;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero {
+      width: 100%;
+      height: clamp(240px, 38vw, 520px);
+      overflow: hidden;
+    }
+
+    .hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+      display: block;
+    }
+
+    /* ── PAGE BODY ── */
+    .page {
+      max-width: var(--measure);
+      margin: 0 auto;
+      padding: clamp(3rem, 8vw, 5rem) var(--gutter) clamp(4rem, 10vw, 7rem);
+    }
+
+    /* ── INTRO ── */
+    .intro {
+      font-family: var(--font-display);
+      font-size: var(--size-italic);
+      font-style: italic;
+      color: var(--mid);
+      margin-bottom: clamp(2.5rem, 6vw, 4rem);
+      line-height: 1.65;
+    }
+
+    /* ── HOLDINGS GRID ── */
+    .holdings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+
+    .holdings-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--light);
+      font-weight: 300;
+    }
+
+    .holdings-all {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--light);
+      transition: color 0.2s;
+    }
+
+    .holdings-all:hover { color: var(--ink); }
+
+    .holdings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-left: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .holding-card {
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.2s;
+    }
+
+    .holding-card:hover { opacity: 0.82; }
+
+    .card-img-wrap {
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      background: #f0ede8;
+    }
+
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .holding-card:hover .card-img-wrap img { transform: scale(1.02); }
+
+    .card-body {
+      padding: 1.1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+      font-weight: 500;
+      line-height: 1.3;
+      color: var(--ink);
+    }
+
+    .card-desc {
+      font-size: 0.8rem;
+      color: var(--mid);
+      line-height: 1.7;
+      flex: 1;
+    }
+
+    .card-price {
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--light);
+      margin-top: 0.25rem;
+    }
+
+    /* ── GODFATHER IMAGE ── */
+    .godfather-figure { margin: 0; }
+
+    .godfather-img {
+      width: 100%;
+      height: clamp(200px, 30vw, 380px);
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .godfather-caption {
+      padding: 0.6rem 0 0;
+      font-size: 0.65rem;
+      color: var(--light);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 600px) {
+      .holdings-grid { grid-template-columns: 1fr; border-left: none; }
+      .holding-card { border-right: none; }
+    }
+
+    /* ── COMING SOON ── */
+    .coming-soon {
+      padding: 2rem 0 0;
+      font-size: 0.85rem;
+      color: var(--mid);
+      line-height: 1.8;
+    }
+
+    .coming-soon p { margin-bottom: 0.5rem; }
+    .coming-soon p:last-child { margin-bottom: 0; }
+
+    /* ── DIVIDER ── */
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: clamp(2.5rem, 6vw, 4rem) 0;
+    }
+
+    /* ── ABOUT ── */
+    .about p {
+      font-size: 0.92rem;
+      color: var(--mid);
+      line-height: 1.85;
+      margin-bottom: 1rem;
+    }
+
+    .about p:last-child { margin-bottom: 0; }
+
+    /* ── RAREBOOKCHAT HEADING ── */
+    .rarebookchat-heading {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+      color: var(--ink);
+      display: block;
+      margin-bottom: 0;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .rarebookchat-heading em {
+      font-style: italic;
+      color: #1a7fad;
+    }
+
+    .rarebookchat-desc {
+      font-size: 0.88rem;
+      color: var(--mid);
+      line-height: 1.8;
+      margin-top: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── LATEST EPISODE ── */
+    .latest-episode {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 0 1.75rem;
+    }
+
+    .latest-label {
+      font-size: 0.63rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--light);
+      display: block;
+      margin-bottom: 0.75rem;
+      font-weight: 400;
+    }
+
+    .latest-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+      font-weight: 400;
+      line-height: 1.25;
+      color: var(--ink);
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.01em;
+    }
+
+    .latest-date {
+      font-size: 0.68rem;
+      color: var(--light);
+      font-weight: 300;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .latest-desc {
+      font-size: 0.85rem;
+      color: var(--mid);
+      line-height: 1.75;
+      margin-bottom: 0.75rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .latest-desc.expanded {
+      display: block;
+    }
+
+    .latest-more {
+      font-size: 0.63rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--light);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 0;
+      display: block;
+      margin-bottom: 0.75rem;
+      transition: color 0.2s;
+    }
+
+    .latest-more:hover { color: var(--ink); }
+
+    .latest-audio {
+      width: 100%;
+      height: 32px;
+      accent-color: var(--ink);
+      display: block;
+      margin-top: 0.5rem;
+    }
+
+    /* ── PODCAST ── */
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--light);
+      display: block;
+      margin-bottom: 1.5rem;
+      font-weight: 400;
+    }
+
+    .podcast-episodes { list-style: none; }
+
+    .podcast-episodes li {
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 0;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--size-italic);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    .podcast-episodes li:last-child { border-bottom: 1px solid var(--border); }
+
+    .podcast-all {
+      display: inline-block;
+      margin-top: 1.1rem;
+      font-size: 0.63rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--light);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .podcast-all:hover { color: var(--ink); border-color: var(--ink); }
+
+    /* ── FOOTER ── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding-top: 1.75rem;
+      margin-top: clamp(2.5rem, 6vw, 4rem);
+    }
+
+    .footer-contact {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--light);
+      margin-bottom: 1.25rem;
+    }
+
+    .footer-contact a {
+      color: var(--ink);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1px;
+      transition: border-color 0.2s;
+    }
+
+    .footer-contact a:hover { border-color: var(--ink); }
+
+    .pawn-stars {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--size-italic);
+      color: var(--mid);
+      line-height: 1.65;
+      max-width: 620px;
+    }
+
+    .pawn-stars a {
+      color: var(--mid);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .pawn-stars a:hover { color: var(--ink); border-color: var(--ink); }
+
+    /* ── FADE IN ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .masthead { animation: fadeUp 0.5s ease both; }
+    .hero     { animation: fadeUp 0.5s ease 0.05s both; }
+    .page     { animation: fadeUp 0.5s ease 0.1s both; }
+
+    /* ── MASTHEAD NAV ── */
+    .masthead-nav {
+      margin-left: auto;
+    }
+
+    .nav-about {
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mid);
+      text-decoration: none;
+      transition: color 0.2s;
+      font-weight: 400;
+    }
+
+    .nav-about:hover,
+    .nav-about.active { color: var(--ink); }
+
+    /* ── ABOUT PANEL ── */
+    .about-panel {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s ease;
+      border-bottom: 0px solid var(--border);
+    }
+
+    .about-panel.open {
+      max-height: 80rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .about-inner {
+      max-width: var(--measure);
+      margin: 0 auto;
+      padding: 2rem var(--gutter) 2.5rem;
+    }
+
+    .about-inner p {
+      font-size: 0.92rem;
+      color: var(--mid);
+      line-height: 1.85;
+      margin-bottom: 1rem;
+    }
+
+    .about-inner p:last-child { margin-bottom: 0; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 480px) {
+      .masthead-nav { margin-left: 0; }
+    }
