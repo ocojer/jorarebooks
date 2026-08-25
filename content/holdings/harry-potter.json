@@ -1,9 +1,11 @@
 {
-  "order": 1,
-  "title": "Before the Phenomenon: The Earliest Known Printing of <em>Harry Potter and the Philosopher's Stone</em>",
-  "description": "The galley sheets printed at Bloomsbury on 25 February 1997 — the only known surviving copy of the earliest printing in any form.",
-  "image": "HERO.jpg",
-  "alt": "Harry Potter galley sheets, 1997",
+  "title": "The Dawn of New Hollywood: Fred Roos Casting & Production Archive",
+  "description": "An extensive archive of casting and production materials, spanning six decades of American filmmaking.",
+  "image": "GODFATHER.jpeg",
+  "alt": "Fred Roos Casting & Production Archive",
   "price": "Inquire",
+  "pdf_url": "",
+  "video_url": "",
+  "order": 1,
   "url": "#"
 }
