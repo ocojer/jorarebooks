@@ -13,6 +13,7 @@ const TEMPLATE      = path.join(__dirname, 'template.html');
 const OUTPUT        = path.join(__dirname, 'index.html');
 const HOLDINGS_DIR  = path.join(__dirname, 'content', 'holdings');
 const HOMEPAGE_FILE = path.join(__dirname, 'content', 'homepage.json');
+const SECTIONS_DIR  = path.join(__dirname, 'content', 'sections');
 
 // ── Fetch URL, following redirects ─────────────────────────
 function fetch(url) {
@@ -86,6 +87,44 @@ function renderIntro(data) {
   return [paraHtml, signoffHtml].filter(Boolean).join('\n');
 }
 
+// ── Build stacked wide sections from content/sections/*.json ──
+function renderSections() {
+  if (!fs.existsSync(SECTIONS_DIR)) {
+    console.error(`Sections folder not found at ${SECTIONS_DIR}`);
+    return '';
+  }
+
+  const files = fs.readdirSync(SECTIONS_DIR).filter(f => f.endsWith('.json'));
+
+  const sections = files.map(file => {
+    const raw = fs.readFileSync(path.join(SECTIONS_DIR, file), 'utf8');
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      console.error(`Skipping ${file} — invalid JSON: ${e.message}`);
+      return null;
+    }
+  }).filter(Boolean);
+
+  sections.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+
+  return sections.map(s => {
+    const caption = s.caption
+      ? `<div class="wide-section-caption">${s.caption}</div>`
+      : '';
+    const description = s.description
+      ? `<p class="wide-section-desc">${s.description}</p>`
+      : '';
+    return `      <figure class="wide-section">
+        <img src="${s.image}" alt="${s.alt || ''}" class="wide-section-img">
+        <figcaption>
+          ${caption}
+          ${description}
+        </figcaption>
+      </figure>`;
+  }).join('\n\n');
+}
+
 // ── Build the holdings grid HTML from content/holdings/*.json ──
 function renderHoldings() {
   if (!fs.existsSync(HOLDINGS_DIR)) {
@@ -109,17 +148,34 @@ function renderHoldings() {
 
   return holdings.map(h => {
     const url = h.url && h.url.trim() ? h.url : '#';
-    const price = h.price && h.price.trim() ? h.price : 'Inquire for price';
-    return `      <a class="holding-card" href="${url}">
-        <div class="card-img-wrap">
-          <img src="${h.image}" alt="${h.alt || ''}" onerror="this.style.display='none'; this.parentElement.style.background='#ece7de';">
-        </div>
+
+    const actions = [];
+    if (h.pdf_url && h.pdf_url.trim()) {
+      actions.push(`<a class="card-action" href="${h.pdf_url}" target="_blank" rel="noopener noreferrer">View PDF</a>`);
+    }
+    if (h.video_url && h.video_url.trim()) {
+      actions.push(`<a class="card-action" href="${h.video_url}" target="_blank" rel="noopener noreferrer">Video</a>`);
+    }
+    if (actions.length === 0) {
+      const inquireText = h.price && h.price.trim() ? h.price : 'Inquire';
+      const plainTitle = h.title.replace(/<[^>]+>/g, '');
+      const subject = encodeURIComponent(`Inquiry: ${plainTitle}`);
+      actions.push(`<a class="card-action" href="mailto:jeremy@jorarebooks.com?subject=${subject}">${inquireText}</a>`);
+    }
+    const actionsHtml = actions.join('<span class="card-action-sep">·</span>');
+
+    return `      <div class="holding-card">
+        <a class="card-img-link" href="${url}">
+          <div class="card-img-wrap">
+            <img src="${h.image}" alt="${h.alt || ''}" onerror="this.style.display='none'; this.parentElement.style.background='#ece7de';">
+          </div>
+        </a>
         <div class="card-body">
           <div class="card-title">${h.title}</div>
           <p class="card-desc">${h.description}</p>
-          <div class="card-price">${price}</div>
+          <div class="card-actions">${actionsHtml}</div>
         </div>
-      </a>`;
+      </div>`;
   }).join('\n\n');
 }
 
@@ -154,6 +210,9 @@ async function build() {
 
   console.log('Rendering holdings...');
   const holdingsHtml = renderHoldings();
+
+  console.log('Rendering sections...');
+  const sectionsHtml = renderSections();
 
   console.log('Fetching RSS feed...');
 
@@ -193,11 +252,16 @@ async function build() {
     console.error('Template is missing the <!-- INTRO --> placeholder.');
     process.exit(1);
   }
+  if (!output.includes('<!-- SECTIONS -->')) {
+    console.error('Template is missing the <!-- SECTIONS --> placeholder.');
+    process.exit(1);
+  }
 
   output = output.replace('<!-- LATEST EPISODE -->', latestHtml);
   output = output.replace('<!-- HOLDINGS -->', holdingsHtml);
   output = output.replace('<!-- HERO_IMAGE -->', heroHtml);
   output = output.replace('<!-- INTRO -->', introHtml);
+  output = output.replace('<!-- SECTIONS -->', sectionsHtml);
 
   fs.writeFileSync(OUTPUT, output, 'utf8');
 

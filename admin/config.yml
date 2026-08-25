@@ -63,7 +63,18 @@ collections:
       - label: "Price or availability note"
         name: "price"
         widget: "string"
-        default: "Inquire for price"
+        default: "Inquire"
+        hint: "Shown only if there's no PDF or video below — otherwise those replace it."
+      - label: "PDF (optional)"
+        name: "pdf_url"
+        widget: "string"
+        required: false
+        hint: "Link to a PDF (condition report, provenance, etc). If set, shows as \"View PDF\" instead of the price/inquire line."
+      - label: "Video (optional)"
+        name: "video_url"
+        widget: "string"
+        required: false
+        hint: "Link to a video (e.g. YouTube). If set, shows as \"Video\" instead of the price/inquire line."
       - label: "Display order"
         name: "order"
         widget: "number"
@@ -75,3 +86,38 @@ collections:
         required: false
         hint: "Leave as # until this holding has its own story page."
         default: "#"
+
+  - name: "sections"
+    label: "Feature Sections"
+    label_singular: "Section"
+    folder: "content/sections"
+    create: true
+    extension: "json"
+    format: "json"
+    slug: "{{slug}}"
+    summary: "{{order}} — {{caption}}"
+    fields:
+      - label: "Photo"
+        name: "image"
+        widget: "image"
+        hint: "A wide photo — spans the same width as the Featured holdings grid above it."
+      - label: "Photo alt text"
+        name: "alt"
+        widget: "string"
+        required: false
+        hint: "A short description of the photo, for accessibility and search engines."
+      - label: "Caption"
+        name: "caption"
+        widget: "string"
+        required: false
+        hint: "A short line under the photo."
+      - label: "Description"
+        name: "description"
+        widget: "text"
+        required: false
+        hint: "Longer text below the caption."
+      - label: "Display order"
+        name: "order"
+        widget: "number"
+        hint: "Lower numbers show first when there's more than one section — each stacks below the one before it."
+        default: 10

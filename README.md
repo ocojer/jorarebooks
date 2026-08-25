@@ -33,11 +33,15 @@ episode baked in without you running anything locally.
 ## Editing the homepage
 
 1. **Browser** — go to `jorarebooks.com/admin`, log in with your GitHub
-   account (`ocojer`). You'll see two sections:
+   account (`ocojer`). You'll see three sections:
    - **Homepage** — the hero photo and the intro paragraphs below it.
-   - **Current Holdings** — add, edit, or remove holdings, including photos.
+   - **Current Holdings** — add, edit, or remove holdings, including photos,
+     PDFs, and video links.
+   - **Feature Sections** — full-width image + caption + description blocks
+     (like the Godfather casting list). Add more and they stack in order.
 2. **By hand** — the hero and intro live in `content/homepage.json`; each
-   holding is its own file in `content/holdings/`.
+   holding is its own file in `content/holdings/`; each feature section is
+   its own file in `content/sections/`.
 
 Either way, `build.js` reads these files at build time and generates the
 page — nothing in `template.html` needs to change.
@@ -57,7 +61,9 @@ Two ways to do this:
      "description": "One or two sentences.",
      "image": "SOMEFILE.jpg",
      "alt": "Short description of the photo",
-     "price": "Inquire for price",
+     "price": "Inquire",
+     "pdf_url": "",
+     "video_url": "",
      "url": "#"
    }
    ```
@@ -66,8 +72,31 @@ Two ways to do this:
    `image` points to a file that isn't in the repo, the card falls back to a
    plain color block automatically — same as it always has.
 
+   The bottom line of each card shows, in priority order: a "View PDF" link
+   if `pdf_url` is set, a "Video" link if `video_url` is set, or — if
+   neither is set — the `price` text as a clickable "Inquire" link that
+   opens an email to jeremy@jorarebooks.com with the item name pre-filled
+   in the subject.
+
 Either way, `build.js` reads every file in `content/holdings/` at build time
 and generates the grid — nothing in `template.html` needs to change.
+
+## Editing feature sections
+
+Full-width blocks below the holdings grid — same 1600px width, stacked in
+`order`. Each is its own JSON file in `content/sections/`:
+
+```json
+{
+  "order": 1,
+  "image": "SOMEFILE.jpg",
+  "alt": "Short description of the photo",
+  "caption": "A short line under the photo.",
+  "description": "Longer explanatory text below the caption."
+}
+```
+
+Add more files to add more sections — they render one below the next.
 
 ## Design tokens
 
