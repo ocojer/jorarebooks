@@ -19,7 +19,7 @@ const SECTIONS_DIR      = path.join(__dirname, 'content', 'sections');
 const PARTIALS_DIR      = path.join(__dirname, 'partials');
 
 const AIRTABLE_BASE_ID  = 'appcfXqSzvoq0by4T';
-const AIRTABLE_TABLE    = 'Items';
+const AIRTABLE_TABLE    = 'ITEMS';
 const AIRTABLE_TOKEN    = process.env.AIRTABLE_TOKEN || '';
 
 // ── Fetch Airtable inventory ────────────────────────────────
@@ -33,7 +33,7 @@ function fetchAirtable() {
     return Promise.resolve([]);
   }
 
-  const filter = encodeURIComponent(`{Availability} = "Available"`);
+  const filter = encodeURIComponent(`{AVAILABILITY} = "Available"`);
   const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE)}?filterByFormula=${filter}&pageSize=100`;
 
   return new Promise((resolve, reject) => {
