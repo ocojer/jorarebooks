@@ -488,7 +488,7 @@ function firstImageUrl(record, fieldName) {
 
 // ── Render all Airtable attachment images as thumbnail strip ─
 function renderThumbs(record) {
-  const atts = fieldArr(record, 'IMAGES');
+  const atts = fieldArr(record, 'IMAGE(S)');
   if (!atts.length) return '';
   return atts.map((att, i) =>
     `<div class="shop-item-thumb${i === 0 ? ' active' : ''}"
@@ -593,7 +593,7 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
   const listPrice = field(record, 'LIST PRICE');
   const inquireOnly = record.fields['INQUIRE ONLY'];
   const slug = itemSlug(record);
-  const images = fieldArr(record, 'IMAGES');
+  const images = fieldArr(record, 'IMAGE(S)');
 
   const placeDate = [place, publisher, date].filter(Boolean).join(': ').replace(/: (\d)/, ', $1') || '';
   const categoryDisplay = categories.join(' · ');
@@ -645,7 +645,7 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
       <div class="shop-item-related-grid">
         ${related.map(r => {
           const rSlug = itemSlug(r);
-          const rImg = firstImageUrl(r, 'IMAGES');
+          const rImg = firstImageUrl(r, 'IMAGE(S)');
           const rTitle = field(r, 'TITLE');
           const rAuthor = field(r, 'AUTHOR / CREATOR');
           const rPrice = field(r, 'PRICE') || (r.fields['INQUIRE ONLY'] ? 'Inquire' : '');
@@ -708,7 +708,7 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
     const price = field(r, 'PRICE');
     const inquireOnly = r.fields['INQUIRE ONLY'];
     const priceDisplay = (!inquireOnly && price) ? price : 'Inquire';
-    const imgUrl = firstImageUrl(r, 'IMAGES');
+    const imgUrl = firstImageUrl(r, 'IMAGE(S)');
     const cats = fieldArr(r, 'CATEGORY').join(',');
     const isArchive = r.fields['IS ARCHIVE?'];
     const meta = [place, date].filter(Boolean).join(', ');
@@ -740,7 +740,7 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
     const priceDisplay = showPrice ? (price || `$${Number(listPrice).toLocaleString()}`) : null;
     const desc = field(r, 'DESCRIPTION');
     const pullQuote = field(r, 'PULL QUOTE');
-    const imgUrl = firstImageUrl(r, 'IMAGES');
+    const imgUrl = firstImageUrl(r, 'IMAGE(S)');
     const cats = fieldArr(r, 'CATEGORY').join(',');
     const isArchive = r.fields['IS ARCHIVE?'];
     const meta = [place, publisher, date].filter(Boolean).join(' · ');
