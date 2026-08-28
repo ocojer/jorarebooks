@@ -46,6 +46,34 @@ collections:
             widget: "text"
             hint: "Wrap any phrase in <strong> and </strong> to bold it, e.g. <strong>An archive documenting...</strong>"
 
+      - name: "site_info"
+        label: "Contact &amp; Site Info"
+        file: "content/site-info.json"
+        fields:
+          - label: "Phone (digits only, e.g. +12125551234)"
+            name: "phone"
+            widget: "string"
+            required: false
+            hint: "Used in the tel: link. Leave blank to hide the phone number."
+          - label: "Phone (display format, e.g. 212-555-1234)"
+            name: "phone_display"
+            widget: "string"
+            required: false
+          - label: "Email"
+            name: "email"
+            widget: "string"
+            default: "info@jorarebooks.com"
+          - label: "Shipping note"
+            name: "shipping_note"
+            widget: "string"
+            default: "Free shipping within the US"
+            hint: "Shown beside the price on item pages."
+          - label: "Returns note"
+            name: "returns_note"
+            widget: "string"
+            required: false
+            hint: "Optional — shown on item pages if set."
+
   - name: "holdings"
     label: "Current Holdings"
     label_singular: "Holding"
@@ -98,6 +126,16 @@ collections:
         widget: "string"
         required: false
         hint: "Link to a video (e.g. YouTube). If set, shows as \"Video\" instead of the price/inquire line."
+      - label: "Pull Quote (optional)"
+        name: "pull_quote"
+        widget: "string"
+        required: false
+        hint: "A short standout line shown in italic on the shop item page, after the first paragraph. Don't include the quotation marks — they're added automatically."
+      - label: "Pull Quote Attribution (optional)"
+        name: "pull_quote_attribution"
+        widget: "string"
+        required: false
+        hint: "e.g. Jasper Johns to Véra Russell, 12 February 1975"
       - label: "Display order"
         name: "order"
         widget: "number"

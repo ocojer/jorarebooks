@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><!-- ITEM_TITLE --> — Jeremy O'Connor, Books &amp; Manuscripts</title>
+  <meta name="description" content="<!-- ITEM_SEO_DESC -->">
+  <link rel="canonical" href="<!-- ITEM_CANONICAL -->">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ffffff'/><text y='50' font-size='62' font-family='Georgia,serif' fill='%23111111' x='50' text-anchor='middle' dominant-baseline='central'>J</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <!-- MASTHEAD -->
+
+  <div class="shop-page">
+
+    <div class="shop-item-breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">→</span>
+      <a href="/shop/">Shop</a>
+      <span class="breadcrumb-sep">→</span>
+      <!-- ITEM_BREADCRUMB_CATEGORY -->
+      <span class="breadcrumb-sep">→</span>
+      <span><!-- ITEM_BREADCRUMB_TITLE --></span>
+    </div>
+
+    <div class="shop-item-layout">
+
+      <!-- THUMB STRIP -->
+      <div class="shop-item-thumbs">
+        <!-- ITEM_THUMBS -->
+      </div>
+
+      <!-- MAIN IMAGE -->
+      <div class="shop-item-image-wrap">
+        <div class="shop-item-main-image">
+          <!-- ITEM_MAIN_IMAGE -->
+        </div>
+      </div>
+
+      <!-- TEXT COLUMN -->
+      <div class="shop-item-detail">
+
+        <div class="shop-item-category"><!-- ITEM_CATEGORY --></div>
+        <div class="shop-item-author"><!-- ITEM_AUTHOR --></div>
+        <h1 class="shop-item-title"><!-- ITEM_TITLE_DISPLAY --></h1>
+        <div class="shop-item-place-date"><!-- ITEM_PLACE_DATE --></div>
+
+        <div class="shop-item-price-row">
+          <span class="shop-item-price"><!-- ITEM_PRICE --></span>
+          <!-- ITEM_PRICE_NOTE -->
+        </div>
+
+        <div class="shop-item-actions">
+          <!-- ITEM_ACTIONS -->
+        </div>
+
+        <div class="shop-item-contact">
+          <!-- ITEM_CONTACT -->
+        </div>
+
+        <hr class="shop-item-desc-rule">
+
+        <!-- ITEM_DESCRIPTION_BODY -->
+
+      </div>
+    </div>
+
+    <!-- ITEM_RELATED -->
+
+    <!-- FOOTER -->
+
+  </div>
+
+  <script>
+    function switchImage(src, alt, thumb) {
+      document.querySelector('.shop-item-main-image img').src = src;
+      document.querySelector('.shop-item-main-image img').alt = alt;
+      document.querySelectorAll('.shop-item-thumb').forEach(t => t.classList.remove('active'));
+      thumb.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>

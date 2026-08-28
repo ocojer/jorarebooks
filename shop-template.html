@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop — Jeremy O'Connor, Books &amp; Manuscripts</title>
+  <meta name="description" content="Browse the current inventory of Jeremy O'Connor, Books &amp; Manuscripts — rare books, manuscripts, archives, and documents.">
+  <link rel="canonical" href="https://www.jorarebooks.com/shop/">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ffffff'/><text y='50' font-size='62' font-family='Georgia,serif' fill='%23111111' x='50' text-anchor='middle' dominant-baseline='central'>J</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <!-- MASTHEAD -->
+
+  <div class="shop-page">
+
+    <div class="shop-header">
+      <div class="shop-header-left">
+        <h1 class="shop-title">Shop</h1>
+        <span class="shop-count"><!-- SHOP_COUNT --> items</span>
+      </div>
+      <div class="view-toggle">
+        <button class="toggle-btn active" onclick="setView('list')" title="List view" aria-label="List view">
+          <svg class="toggle-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <line x1="4" y1="3" x2="13" y2="3"/><line x1="4" y1="7" x2="13" y2="7"/><line x1="4" y1="11" x2="13" y2="11"/>
+            <rect x="1" y="2" width="1.5" height="1.5"/><rect x="1" y="6" width="1.5" height="1.5"/><rect x="1" y="10" width="1.5" height="1.5"/>
+          </svg>
+        </button>
+        <button class="toggle-btn" onclick="setView('grid')" title="Grid view" aria-label="Grid view">
+          <svg class="toggle-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <rect x="1" y="1" width="5" height="5"/><rect x="8" y="1" width="5" height="5"/>
+            <rect x="1" y="8" width="5" height="5"/><rect x="8" y="8" width="5" height="5"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="shop-filters" id="shop-filters">
+      <!-- SHOP_FILTERS -->
+    </div>
+
+    <!-- LIST VIEW -->
+    <div class="shop-list" id="list-view">
+      <!-- SHOP_LIST_ITEMS -->
+    </div>
+
+    <!-- GRID VIEW -->
+    <div class="shop-grid hidden" id="grid-view">
+      <!-- SHOP_GRID_ITEMS -->
+    </div>
+
+  </div>
+
+  <script>
+    function setView(v) {
+      const list = document.getElementById('list-view');
+      const grid = document.getElementById('grid-view');
+      const btns = document.querySelectorAll('.toggle-btn');
+      if (v === 'grid') {
+        list.classList.add('hidden');
+        grid.classList.remove('hidden');
+        btns[0].classList.remove('active');
+        btns[1].classList.add('active');
+        localStorage.setItem('shopView', 'grid');
+      } else {
+        grid.classList.add('hidden');
+        list.classList.remove('hidden');
+        btns[1].classList.remove('active');
+        btns[0].classList.add('active');
+        localStorage.setItem('shopView', 'list');
+      }
+    }
+
+    function filterCategory(cat, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const all = cat === 'all';
+      document.querySelectorAll('.shop-list .list-card, .shop-grid .grid-card').forEach(card => {
+        const cats = (card.dataset.categories || '').split(',');
+        card.style.display = (all || cats.includes(cat)) ? '' : 'none';
+      });
+    }
+
+    // Restore last-used view preference
+    const saved = localStorage.getItem('shopView');
+    if (saved === 'grid') setView('grid');
+  </script>
+
+</body>
+</html>

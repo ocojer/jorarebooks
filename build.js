@@ -11,12 +11,15 @@ const path  = require('path');
 const RSS_URL           = 'https://feeds.transistor.fm/rare-book-chat';
 const TEMPLATE          = path.join(__dirname, 'template.html');
 const STORY_TEMPLATE    = path.join(__dirname, 'story-template.html');
+const SHOP_TEMPLATE     = path.join(__dirname, 'shop-template.html');
+const SHOP_ITEM_TEMPLATE = path.join(__dirname, 'shop-item-template.html');
 const OUTPUT            = path.join(__dirname, 'index.html');
 const HOLDINGS_DIR      = path.join(__dirname, 'content', 'holdings');
 const HOMEPAGE_FILE     = path.join(__dirname, 'content', 'homepage.json');
 const COMING_SOON_FILE  = path.join(__dirname, 'content', 'coming-soon.json');
 const SECTIONS_DIR      = path.join(__dirname, 'content', 'sections');
 const PARTIALS_DIR      = path.join(__dirname, 'partials');
+const SITE_INFO_FILE    = path.join(__dirname, 'content', 'site-info.json');
 
 const AIRTABLE_BASE_ID  = 'appcfXqSzvoq0by4T';
 const AIRTABLE_TABLE    = 'ITEMS';
@@ -453,11 +456,337 @@ ${bodyHtml}
   return output;
 }
 
+// ── Load content/site-info.json ──────────────────────────────
+function loadSiteInfo() {
+  if (!fs.existsSync(SITE_INFO_FILE)) return {};
+  try { return JSON.parse(fs.readFileSync(SITE_INFO_FILE, 'utf8')); }
+  catch (e) { console.error('Invalid JSON in site-info.json:', e.message); return {}; }
+}
+
+// ── Helpers for Airtable field access ────────────────────────
+function field(record, name) {
+  return (record.fields || {})[name] || '';
+}
+
+function fieldArr(record, name) {
+  return Array.isArray((record.fields || {})[name]) ? record.fields[name] : [];
+}
+
+// ── Derive a URL-safe slug from an Airtable record ───────────
+function itemSlug(record) {
+  const manual = field(record, 'SLUG');
+  if (manual && manual.trim()) return manual.trim();
+  const title = field(record, 'TITLE');
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+// ── Build the first Airtable attachment URL, if any ──────────
+function firstImageUrl(record, fieldName) {
+  const atts = fieldArr(record, fieldName);
+  return atts.length ? atts[0].url : '';
+}
+
+// ── Render all Airtable attachment images as thumbnail strip ─
+function renderThumbs(record) {
+  const atts = fieldArr(record, 'IMAGES');
+  if (!atts.length) return '';
+  return atts.map((att, i) =>
+    `<div class="shop-item-thumb${i === 0 ? ' active' : ''}"
+      onclick="switchImage('${att.url}','${att.filename}',this)">
+      <img src="${att.url}" alt="${att.filename}" loading="lazy">
+    </div>`
+  ).join('\n');
+}
+
+// ── Render the contact block from site-info ──────────────────
+function renderContactBlock(siteInfo) {
+  const parts = [];
+  if (siteInfo.phone && siteInfo.phone_display) {
+    parts.push(`📞 <a href="tel:${siteInfo.phone}">${siteInfo.phone_display}</a>`);
+  }
+  if (siteInfo.email) {
+    parts.push(`✉ <a href="mailto:${siteInfo.email}">${siteInfo.email}</a>`);
+  }
+  return parts.join(' &nbsp;·&nbsp; ');
+}
+
+// ── Convert a YouTube URL to embed URL ───────────────────────
+function toEmbedUrl(url) {
+  if (!url) return null;
+  let m = url.match(/[?&]v=([\w-]+)/);
+  if (m) return `https://www.youtube.com/embed/${m[1]}`;
+  m = url.match(/youtu\.be\/([\w-]+)/);
+  if (m) return `https://www.youtube.com/embed/${m[1]}`;
+  return null;
+}
+
+// ── Render the item description body (first para, pull quote,
+//    remaining paras, optional video, PDF) ────────────────────
+function renderItemBody(record) {
+  const desc = field(record, 'DESCRIPTION');
+  const pullQuote = field(record, 'PULL QUOTE');
+  const pullAttr = field(record, 'PULL QUOTE ATTRIBUTION');
+  const videoUrl = field(record, 'VIDEO URL');
+  const pdfAtts = fieldArr(record, 'PDF');
+  const pdfCoverAtts = fieldArr(record, 'PDF COVER IMAGE');
+
+  // Split description into paragraphs
+  const paras = desc.split(/\n+/).map(p => p.trim()).filter(Boolean);
+
+  let html = '';
+
+  // First paragraph — the summary that does the selling
+  if (paras.length > 0) {
+    html += `<div class="shop-item-desc"><p>${paras[0]}</p></div>\n`;
+  }
+
+  // Pull quote after first paragraph
+  if (pullQuote) {
+    html += `<div class="shop-item-pull-quote">
+      <div class="shop-item-pull-quote-text">"${pullQuote}"</div>
+      ${pullAttr ? `<div class="shop-item-pull-quote-attr">${pullAttr}</div>` : ''}
+    </div>\n`;
+  }
+
+  // Remaining paragraphs
+  if (paras.length > 1) {
+    html += `<div class="shop-item-desc">\n`;
+    paras.slice(1).forEach(p => { html += `      <p>${p}</p>\n`; });
+    html += `</div>\n`;
+  }
+
+  // Video embed
+  const embedUrl = toEmbedUrl(videoUrl);
+  if (embedUrl) {
+    html += `<div class="shop-item-video">
+      <div class="shop-item-video-frame">
+        <iframe src="${embedUrl}" title="${field(record, 'TITLE')}" allowfullscreen></iframe>
+      </div>
+    </div>\n`;
+  }
+
+  // PDF link — with optional cover image card
+  if (pdfAtts.length) {
+    const pdfUrl = pdfAtts[0].url;
+    const pdfName = field(record, 'TITLE') || pdfAtts[0].filename;
+    html += `<div class="shop-item-pdf">
+      <span class="shop-item-pdf-icon">📄</span>
+      <span class="shop-item-pdf-name">${pdfName} — Full Description</span>
+      <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer" class="shop-item-pdf-link">View PDF</a>
+    </div>\n`;
+  }
+
+  return html;
+}
+
+// ── Render a single shop item page ───────────────────────────
+function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteInfo) {
+  const title = field(record, 'TITLE');
+  const author = field(record, 'AUTHOR / CREATOR');
+  const artist = field(record, 'ARTIST / ILLUSTRATOR');
+  const authorDisplay = [author, artist].filter(Boolean).join('; ');
+  const date = field(record, 'DATE');
+  const place = field(record, 'PLACE');
+  const publisher = field(record, 'PUBLISHER');
+  const categories = fieldArr(record, 'CATEGORY');
+  const price = field(record, 'PRICE');
+  const listPrice = field(record, 'LIST PRICE');
+  const inquireOnly = record.fields['INQUIRE ONLY'];
+  const slug = itemSlug(record);
+  const images = fieldArr(record, 'IMAGES');
+
+  const placeDate = [place, publisher, date].filter(Boolean).join(': ').replace(/: (\d)/, ', $1') || '';
+  const categoryDisplay = categories.join(' · ');
+  const canonicalUrl = `https://www.jorarebooks.com/shop/${slug}/`;
+  const seoDesc = field(record, 'SEO DESCRIPTION') ||
+    `${title}${authorDisplay ? ` by ${authorDisplay}` : ''}. ${field(record, 'DESCRIPTION').slice(0, 140)}`;
+
+  // Price display
+  const showPrice = !inquireOnly && (price || listPrice);
+  const priceDisplay = showPrice
+    ? (price || `$${Number(listPrice).toLocaleString()}`)
+    : 'Inquire';
+
+  // Action buttons
+  const priceNote = siteInfo.shipping_note
+    ? `<span class="shop-item-price-note">${siteInfo.shipping_note}</span>` : '';
+
+  let actionsHtml = '';
+  if (inquireOnly || !showPrice) {
+    const subject = encodeURIComponent(`Inquiry: ${title}`);
+    actionsHtml = `<a href="mailto:${siteInfo.email || 'info@jorarebooks.com'}?subject=${subject}" class="shop-btn-inquire">Inquire</a>`;
+  } else {
+    actionsHtml = `<button class="shop-btn-cart" onclick="alert('Cart coming soon')">Add to Cart</button>
+      <a href="mailto:${siteInfo.email || 'info@jorarebooks.com'}?subject=${encodeURIComponent('Inquiry: ' + title)}" class="shop-btn-inquire">Inquire</a>`;
+  }
+
+  // Contact block
+  const contactHtml = renderContactBlock(siteInfo);
+
+  // Main image
+  const mainImgUrl = images.length ? images[0].url : '';
+  const mainImgHtml = mainImgUrl
+    ? `<img src="${mainImgUrl}" alt="${title}" loading="eager">`
+    : '';
+
+  // Related items — same category, excluding self, up to 4
+  const related = allRecords
+    .filter(r => {
+      if (itemSlug(r) === slug) return false;
+      if (field(r, 'AVAILABILITY') !== 'Available') return false;
+      const rCats = fieldArr(r, 'CATEGORY');
+      return categories.some(c => rCats.includes(c));
+    })
+    .slice(0, 4);
+
+  const relatedHtml = related.length ? `
+    <div class="shop-item-related">
+      <span class="shop-item-related-label">Related items</span>
+      <div class="shop-item-related-grid">
+        ${related.map(r => {
+          const rSlug = itemSlug(r);
+          const rImg = firstImageUrl(r, 'IMAGES');
+          const rTitle = field(r, 'TITLE');
+          const rAuthor = field(r, 'AUTHOR / CREATOR');
+          const rPrice = field(r, 'PRICE') || (r.fields['INQUIRE ONLY'] ? 'Inquire' : '');
+          return `<a href="/shop/${rSlug}/" class="related-card">
+            <div class="related-card-img">${rImg ? `<img src="${rImg}" alt="${rTitle}" loading="lazy">` : ''}</div>
+            <div class="related-card-author">${rAuthor}</div>
+            <div class="related-card-title">${rTitle}</div>
+            <div class="related-card-price">${rPrice}</div>
+          </a>`;
+        }).join('\n')}
+      </div>
+    </div>` : '';
+
+  let output = fs.readFileSync(SHOP_ITEM_TEMPLATE, 'utf8');
+  output = output
+    .replace(/<!-- ITEM_TITLE -->/g, title)
+    .replace('<!-- ITEM_SEO_DESC -->', seoDesc)
+    .replace('<!-- ITEM_CANONICAL -->', canonicalUrl)
+    .replace('<!-- MASTHEAD -->', mastheadHtml)
+    .replace('<!-- ITEM_THUMBS -->', renderThumbs(record))
+    .replace('<!-- ITEM_MAIN_IMAGE -->', mainImgHtml)
+    .replace('<!-- ITEM_CATEGORY -->', categoryDisplay)
+    .replace('<!-- ITEM_AUTHOR -->', authorDisplay)
+    .replace('<!-- ITEM_TITLE_DISPLAY -->', title)
+    .replace('<!-- ITEM_PLACE_DATE -->', placeDate)
+    .replace('<!-- ITEM_PRICE -->', priceDisplay)
+    .replace('<!-- ITEM_PRICE_NOTE -->', priceNote)
+    .replace('<!-- ITEM_ACTIONS -->', actionsHtml)
+    .replace('<!-- ITEM_CONTACT -->', contactHtml)
+    .replace('<!-- ITEM_DESCRIPTION_BODY -->', renderItemBody(record))
+    .replace('<!-- ITEM_BREADCRUMB_CATEGORY -->', categoryDisplay
+      ? `<a href="/shop/?cat=${encodeURIComponent(categories[0] || '')}">${categories[0] || ''}</a>` : '')
+    .replace('<!-- ITEM_BREADCRUMB_TITLE -->', title)
+    .replace('<!-- ITEM_RELATED -->', relatedHtml)
+    .replace('<!-- FOOTER -->', footerHtml);
+
+  return output;
+}
+
+// ── Render the /shop/ listing page ───────────────────────────
+function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
+  const categories = [...new Set(
+    records.flatMap(r => fieldArr(r, 'CATEGORY'))
+  )].sort();
+
+  const filterButtons = [
+    `<button class="filter-btn active" onclick="filterCategory('all',this)">All</button>`,
+    ...categories.map(cat =>
+      `<button class="filter-btn" onclick="filterCategory('${cat}',this)">${cat}</button>`
+    )
+  ].join('\n      ');
+
+  // Grid cards
+  const gridItems = records.map(r => {
+    const slug = itemSlug(r);
+    const title = field(r, 'TITLE');
+    const author = field(r, 'AUTHOR / CREATOR');
+    const date = field(r, 'DATE');
+    const place = field(r, 'PLACE');
+    const price = field(r, 'PRICE');
+    const inquireOnly = r.fields['INQUIRE ONLY'];
+    const priceDisplay = (!inquireOnly && price) ? price : 'Inquire';
+    const imgUrl = firstImageUrl(r, 'IMAGES');
+    const cats = fieldArr(r, 'CATEGORY').join(',');
+    const isArchive = r.fields['IS ARCHIVE?'];
+    const meta = [place, date].filter(Boolean).join(', ');
+
+    return `<a href="/shop/${slug}/" class="grid-card" data-categories="${cats}">
+      <div class="grid-img-wrap">
+        <div class="grid-img">${imgUrl ? `<img src="${imgUrl}" alt="${title}" loading="lazy">` : ''}</div>
+        ${isArchive ? '<span class="grid-badge">Archive</span>' : ''}
+      </div>
+      <div class="grid-author">${author}</div>
+      <div class="grid-title">${title}</div>
+      ${meta ? `<div class="grid-meta">${meta}</div>` : ''}
+      <div class="grid-price">${priceDisplay}</div>
+    </a>`;
+  }).join('\n\n');
+
+  // List cards
+  const listItems = records.map(r => {
+    const slug = itemSlug(r);
+    const title = field(r, 'TITLE');
+    const author = field(r, 'AUTHOR / CREATOR');
+    const date = field(r, 'DATE');
+    const place = field(r, 'PLACE');
+    const publisher = field(r, 'PUBLISHER');
+    const price = field(r, 'PRICE');
+    const listPrice = field(r, 'LIST PRICE');
+    const inquireOnly = r.fields['INQUIRE ONLY'];
+    const showPrice = !inquireOnly && (price || listPrice);
+    const priceDisplay = showPrice ? (price || `$${Number(listPrice).toLocaleString()}`) : null;
+    const desc = field(r, 'DESCRIPTION');
+    const pullQuote = field(r, 'PULL QUOTE');
+    const imgUrl = firstImageUrl(r, 'IMAGES');
+    const cats = fieldArr(r, 'CATEGORY').join(',');
+    const isArchive = r.fields['IS ARCHIVE?'];
+    const meta = [place, publisher, date].filter(Boolean).join(' · ');
+    const subject = encodeURIComponent(`Inquiry: ${title}`);
+    const email = siteInfo.email || 'info@jorarebooks.com';
+
+    const rightHtml = `
+      ${isArchive ? '<span class="list-badge">Archive</span>' : ''}
+      ${priceDisplay ? `<span class="list-price">${priceDisplay}</span>` : ''}
+      ${showPrice
+        ? `<button class="list-btn list-btn-cart" onclick="event.preventDefault();alert('Cart coming soon')">Add to Cart</button>`
+        : `<a href="mailto:${email}?subject=${subject}" class="list-btn list-btn-inquire" onclick="event.stopPropagation()">Inquire</a>`}
+      <a href="/shop/${slug}/" class="list-view">View →</a>`;
+
+    return `<a href="/shop/${slug}/" class="list-card" data-categories="${cats}">
+      <div class="list-img">${imgUrl ? `<img src="${imgUrl}" alt="${title}" loading="lazy">` : ''}</div>
+      <div class="list-body">
+        ${pullQuote ? `<div class="list-pull">"${pullQuote}"</div>` : ''}
+        <div class="list-author">${author}</div>
+        <div class="list-title">${title}</div>
+        ${meta ? `<div class="list-meta">${meta}</div>` : ''}
+        ${desc ? `<div class="list-desc">${desc}</div>` : ''}
+      </div>
+      <div class="list-right">${rightHtml}</div>
+    </a>`;
+  }).join('\n\n');
+
+  let output = fs.readFileSync(SHOP_TEMPLATE, 'utf8');
+  output = output
+    .replace('<!-- MASTHEAD -->', mastheadHtml)
+    .replace('<!-- SHOP_COUNT -->', records.length)
+    .replace('<!-- SHOP_FILTERS -->', filterButtons)
+    .replace('<!-- SHOP_GRID_ITEMS -->', gridItems)
+    .replace('<!-- SHOP_LIST_ITEMS -->', listItems);
+
+  return output;
+}
+
 async function build() {
   console.log('Loading shared partials...');
   const mastheadHtml = loadPartial('masthead.html');
   const footerHtml = loadPartial('footer.html');
   const footerHomeHtml = loadPartial('footer-home.html');
+
+  console.log('Loading site info...');
+  const siteInfo = loadSiteInfo();
 
   console.log('Fetching Airtable inventory...');
   const inventoryRecords = await fetchAirtable();
@@ -552,6 +881,28 @@ async function build() {
     fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(path.join(outDir, 'index.html'), storyHtml, 'utf8');
     console.log(`  /${holding.slug}/`);
+  }
+
+  console.log('Building shop pages...');
+  if (inventoryRecords.length > 0) {
+    // Shop listing page
+    const shopHtml = renderShopPage(inventoryRecords, mastheadHtml, footerHtml, siteInfo);
+    const shopDir = path.join(__dirname, 'shop');
+    fs.mkdirSync(shopDir, { recursive: true });
+    fs.writeFileSync(path.join(shopDir, 'index.html'), shopHtml, 'utf8');
+    console.log('  /shop/');
+
+    // Individual item pages
+    for (const record of inventoryRecords) {
+      const slug = itemSlug(record);
+      const itemHtml = renderShopItemPage(record, inventoryRecords, mastheadHtml, footerHtml, siteInfo);
+      const itemDir = path.join(__dirname, 'shop', slug);
+      fs.mkdirSync(itemDir, { recursive: true });
+      fs.writeFileSync(path.join(itemDir, 'index.html'), itemHtml, 'utf8');
+      console.log(`  /shop/${slug}/`);
+    }
+  } else {
+    console.log('  No inventory records — skipping shop pages.');
   }
 
   console.log('\nDone. Deploy the following to Netlify:');
