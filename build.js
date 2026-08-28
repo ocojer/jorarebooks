@@ -582,8 +582,8 @@ function renderItemBody(record) {
 // ── Render a single shop item page ───────────────────────────
 function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteInfo) {
   const title = field(record, 'TITLE');
-  const author = field(record, 'AUTHOR / CREATOR');
-  const artist = field(record, 'ARTIST / ILLUSTRATOR');
+  const author = field(record, 'AUTHOR');
+  const artist = field(record, 'ARTIST/ILLUSTRATOR');
   const authorDisplay = [author, artist].filter(Boolean).join('; ');
   const date = field(record, 'DATE');
   const place = field(record, 'PLACE');
@@ -613,11 +613,10 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
 
   let actionsHtml = '';
   if (inquireOnly || !showPrice) {
-    const subject = encodeURIComponent(`Inquiry: ${title}`);
-    actionsHtml = `<a href="mailto:${siteInfo.email || 'info@jorarebooks.com'}?subject=${subject}" class="shop-btn-inquire">Inquire</a>`;
+    actionsHtml = `<button class="shop-btn-inquire" onclick="openModal('${title.replace(/'/g, "\\'")}')">Inquire</button>`;
   } else {
     actionsHtml = `<button class="shop-btn-cart" onclick="alert('Cart coming soon')">Add to Cart</button>
-      <a href="mailto:${siteInfo.email || 'info@jorarebooks.com'}?subject=${encodeURIComponent('Inquiry: ' + title)}" class="shop-btn-inquire">Inquire</a>`;
+      <button class="shop-btn-inquire" onclick="openModal('${title.replace(/'/g, "\\'")}')">Inquire</button>`;
   }
 
   // Contact block
@@ -647,7 +646,7 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
           const rSlug = itemSlug(r);
           const rImg = firstImageUrl(r, 'IMAGE(S)');
           const rTitle = field(r, 'TITLE');
-          const rAuthor = field(r, 'AUTHOR / CREATOR');
+          const rAuthor = field(r, 'AUTHOR');
           const rPrice = field(r, 'PRICE/INQUIRE') || (r.fields['INQUIRE ONLY?'] ? 'Inquire' : '');
           return `<a href="/shop/${rSlug}/" class="related-card">
             <div class="related-card-img">${rImg ? `<img src="${rImg}" alt="${rTitle}" loading="lazy">` : ''}</div>
@@ -702,7 +701,7 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
   const gridItems = records.map(r => {
     const slug = itemSlug(r);
     const title = field(r, 'TITLE');
-    const author = field(r, 'AUTHOR / CREATOR');
+    const author = field(r, 'AUTHOR');
     const date = field(r, 'DATE');
     const place = field(r, 'PLACE');
     const price = field(r, 'PRICE/INQUIRE');
@@ -729,7 +728,7 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
   const listItems = records.map(r => {
     const slug = itemSlug(r);
     const title = field(r, 'TITLE');
-    const author = field(r, 'AUTHOR / CREATOR');
+    const author = field(r, 'AUTHOR');
     const date = field(r, 'DATE');
     const place = field(r, 'PLACE');
     const publisher = field(r, 'PUBLISHER');

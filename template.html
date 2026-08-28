@@ -73,5 +73,14 @@
       btn.textContent = expanded ? 'Read less' : 'Read more';
     }
   </script>
+  <!-- Hidden form for Netlify Forms detection -->
+  <form name="inquire" netlify netlify-honeypot="bot-field" hidden>
+    <input type="text" name="name">
+    <input type="email" name="email">
+    <input type="text" name="item">
+    <textarea name="message"></textarea>
+    <input type="text" name="bot-field">
+  </form>
+
 </body>
 </html>
