@@ -589,9 +589,9 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
   const place = field(record, 'PLACE');
   const publisher = field(record, 'PUBLISHER');
   const categories = fieldArr(record, 'CATEGORY');
-  const price = field(record, 'PRICE');
-  const listPrice = field(record, 'LIST PRICE');
-  const inquireOnly = record.fields['INQUIRE ONLY'];
+  const price = field(record, 'PRICE/INQUIRE');
+  const listPrice = field(record, 'MARKET PRICE');
+  const inquireOnly = record.fields['INQUIRE ONLY?'];
   const slug = itemSlug(record);
   const images = fieldArr(record, 'IMAGE(S)');
 
@@ -648,7 +648,7 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
           const rImg = firstImageUrl(r, 'IMAGE(S)');
           const rTitle = field(r, 'TITLE');
           const rAuthor = field(r, 'AUTHOR / CREATOR');
-          const rPrice = field(r, 'PRICE') || (r.fields['INQUIRE ONLY'] ? 'Inquire' : '');
+          const rPrice = field(r, 'PRICE/INQUIRE') || (r.fields['INQUIRE ONLY?'] ? 'Inquire' : '');
           return `<a href="/shop/${rSlug}/" class="related-card">
             <div class="related-card-img">${rImg ? `<img src="${rImg}" alt="${rTitle}" loading="lazy">` : ''}</div>
             <div class="related-card-author">${rAuthor}</div>
@@ -705,8 +705,8 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
     const author = field(r, 'AUTHOR / CREATOR');
     const date = field(r, 'DATE');
     const place = field(r, 'PLACE');
-    const price = field(r, 'PRICE');
-    const inquireOnly = r.fields['INQUIRE ONLY'];
+    const price = field(r, 'PRICE/INQUIRE');
+    const inquireOnly = r.fields['INQUIRE ONLY?'];
     const priceDisplay = (!inquireOnly && price) ? price : 'Inquire';
     const imgUrl = firstImageUrl(r, 'IMAGE(S)');
     const cats = fieldArr(r, 'CATEGORY').join(',');
@@ -733,11 +733,11 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
     const date = field(r, 'DATE');
     const place = field(r, 'PLACE');
     const publisher = field(r, 'PUBLISHER');
-    const price = field(r, 'PRICE');
-    const listPrice = field(r, 'LIST PRICE');
-    const inquireOnly = r.fields['INQUIRE ONLY'];
-    const showPrice = !inquireOnly && (price || listPrice);
-    const priceDisplay = showPrice ? (price || `$${Number(listPrice).toLocaleString()}`) : null;
+    const price = field(r, 'PRICE/INQUIRE');
+    const marketPrice = field(r, 'MARKET PRICE');
+    const inquireOnly = r.fields['INQUIRE ONLY?'];
+    const showPrice = !inquireOnly && (price || marketPrice);
+    const priceDisplay = showPrice ? (price || `$${Number(marketPrice).toLocaleString()}`) : null;
     const desc = field(r, 'DESCRIPTION');
     const pullQuote = field(r, 'PULL QUOTE');
     const imgUrl = firstImageUrl(r, 'IMAGE(S)');
@@ -747,15 +747,17 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
     const subject = encodeURIComponent(`Inquiry: ${title}`);
     const email = siteInfo.email || 'info@jorarebooks.com';
 
+    // Use a div with onclick rather than <a> wrapping other <a> tags
+    // (nested links are invalid HTML and break browser rendering)
     const rightHtml = `
       ${isArchive ? '<span class="list-badge">Archive</span>' : ''}
       ${priceDisplay ? `<span class="list-price">${priceDisplay}</span>` : ''}
       ${showPrice
-        ? `<button class="list-btn list-btn-cart" onclick="event.preventDefault();alert('Cart coming soon')">Add to Cart</button>`
+        ? `<button class="list-btn list-btn-cart" onclick="event.stopPropagation();alert('Cart coming soon')">Add to Cart</button>`
         : `<a href="mailto:${email}?subject=${subject}" class="list-btn list-btn-inquire" onclick="event.stopPropagation()">Inquire</a>`}
-      <a href="/shop/${slug}/" class="list-view">View →</a>`;
+      <a href="/shop/${slug}/" class="list-view" onclick="event.stopPropagation()">View →</a>`;
 
-    return `<a href="/shop/${slug}/" class="list-card" data-categories="${cats}">
+    return `<div class="list-card" data-categories="${cats}" onclick="window.location='/shop/${slug}/'" style="cursor:pointer;">
       <div class="list-img">${imgUrl ? `<img src="${imgUrl}" alt="${title}" loading="lazy">` : ''}</div>
       <div class="list-body">
         ${pullQuote ? `<div class="list-pull">"${pullQuote}"</div>` : ''}
@@ -765,7 +767,7 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
         ${desc ? `<div class="list-desc">${desc}</div>` : ''}
       </div>
       <div class="list-right">${rightHtml}</div>
-    </a>`;
+    </div>`;
   }).join('\n\n');
 
   let output = fs.readFileSync(SHOP_TEMPLATE, 'utf8');
