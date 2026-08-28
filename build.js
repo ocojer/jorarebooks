@@ -595,6 +595,8 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
   const slug = itemSlug(record);
   const images = fieldArr(record, 'IMAGE(S)');
 
+  const headline = field(record, 'HEADLINE');
+  const headlineHtml = headline ? '<div class="shop-item-headline">' + headline + '</div>' : '';
   const placeDate = [place, publisher, date].filter(Boolean).join(': ').replace(/: (\d)/, ', $1') || '';
   const categoryDisplay = categories.join(' · ');
   const canonicalUrl = `https://www.jorarebooks.com/shop/${slug}/`;
