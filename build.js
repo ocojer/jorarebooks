@@ -794,6 +794,7 @@ async function build() {
   console.log('Fetching Airtable inventory...');
   const inventoryRecords = await fetchAirtable();
   console.log(`Inventory: ${inventoryRecords.length} available items.`);
+  if (inventoryRecords.length > 0) { console.log("DEBUG fields:", Object.keys(inventoryRecords[0].fields || {}).join(", ")); }
 
   console.log('Rendering homepage content...');
   const homepageData = loadHomepage();
