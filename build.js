@@ -672,6 +672,7 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
     .replace('<!-- ITEM_AUTHOR -->', authorDisplay)
     .replace('<!-- ITEM_TITLE_DISPLAY -->', title)
     .replace('<!-- ITEM_PLACE_DATE -->', placeDate)
+    .replace('<!-- ITEM_HEADLINE -->', headlineHtml)
     .replace('<!-- ITEM_PRICE -->', priceDisplay)
     .replace('<!-- ITEM_PRICE_NOTE -->', priceNote)
     .replace('<!-- ITEM_ACTIONS -->', actionsHtml)
