@@ -971,7 +971,7 @@
 
     .shop-item-desc-rule { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0 1.35rem; }
 
-    .shop-item-desc { font-size: 0.88rem; color: var(--mid); line-height: 1.85; }
+    .shop-item-desc { font-size: 0.88rem; color: var(--mid); line-height: 1.85; margin-top: 2rem; }
     .shop-item-desc p { margin-bottom: 0.9rem; }
     .shop-item-desc p:last-child { margin-bottom: 0; }
 
@@ -1096,3 +1096,5 @@
     .notes-body.open { display: block; }
     .notes-body p { margin-bottom: 0.9rem; }
     .notes-body p:last-child { margin-bottom: 0; }
+
+    .shop-item-desc-label { font-family: var(--font-body); font-size: 0.63rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--light); margin-bottom: 0.75rem; }
