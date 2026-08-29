@@ -78,7 +78,6 @@
       <!-- TEXT COLUMN -->
       <div class="shop-item-detail">
 
-        <div class="shop-item-category"><!-- ITEM_CATEGORY --></div>
         <div class="shop-item-author"><!-- ITEM_AUTHOR --></div>
         <h1 class="shop-item-title"><!-- ITEM_TITLE_DISPLAY --></h1>
         <div class="shop-item-place-date"><!-- ITEM_PLACE_DATE --></div>
@@ -98,6 +97,8 @@
 
         <!-- ITEM_DESCRIPTION_BODY -->
 
+        <!-- ITEM_NOTES -->
+
       </div>
     </div>
 
@@ -113,6 +114,13 @@
       document.querySelector('.shop-item-main-image img').alt = alt;
       document.querySelectorAll('.shop-item-thumb').forEach(t => t.classList.remove('active'));
       thumb.classList.add('active');
+    }
+
+    function toggleNotes(btn) {
+      const body = btn.nextElementSibling;
+      const open = body.classList.toggle('open');
+      btn.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', open);
     }
 
     function openModal(itemTitle) {

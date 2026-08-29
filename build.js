@@ -596,6 +596,10 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
   const images = fieldArr(record, 'IMAGE(S)');
 
   const headline = field(record, 'HEADLINE');
+  const notes = field(record, 'NOTES');
+  const notesHtml = notes
+    ? '<div class="shop-item-notes"><button class="notes-toggle" onclick="toggleNotes(this)" aria-expanded="false"><span class="notes-toggle-icon"></span>Notes</button><div class="notes-body">' + notes.split(/\n+/).map(p => p.trim()).filter(Boolean).map(p => '<p>' + p + '</p>').join('') + '</div></div>'
+    : '';
   const headlineHtml = headline ? '<div class="shop-item-headline">' + headline + '</div>' : '';
   const placeDate = [place, publisher, date].filter(Boolean).join(': ').replace(/: (\d)/, ', $1') || '';
   const categoryDisplay = categories.join(' · ');
@@ -678,6 +682,7 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
     .replace('<!-- ITEM_ACTIONS -->', actionsHtml)
     .replace('<!-- ITEM_CONTACT -->', contactHtml)
     .replace('<!-- ITEM_DESCRIPTION_BODY -->', renderItemBody(record))
+    .replace('<!-- ITEM_NOTES -->', notesHtml)
     .replace('<!-- ITEM_BREADCRUMB_CATEGORY -->', categoryDisplay
       ? `<a href="/shop/?cat=${encodeURIComponent(categories[0] || '')}">${categories[0] || ''}</a>` : '')
     .replace('<!-- ITEM_BREADCRUMB_TITLE -->', title)

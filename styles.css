@@ -954,7 +954,7 @@
     .shop-item-category { font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--light); margin-bottom: 0.5rem; }
     .shop-item-author { font-family: var(--font-display); font-size: var(--size-italic); font-style: italic; color: var(--ink); margin-bottom: 0.3rem; }
     .shop-item-title { font-family: var(--font-display); font-size: var(--size-headline); font-weight: 400; line-height: 1.2; color: var(--ink); margin-bottom: 0.5rem; }
-    .shop-item-place-date { font-size: 0.78rem; color: var(--light); margin-bottom: 0; }
+    .shop-item-place-date { font-size: 0.78rem; color: var(--light); margin-bottom: 1.5rem; }
 
     .shop-item-headline { font-family: var(--font-display); font-style: italic; font-size: clamp(1rem, 2vw, 1.15rem); color: var(--mid); line-height: 1.5; border-top: 1px solid var(--border); padding-top: 1.1rem; margin-bottom: 1.25rem; }
 
@@ -962,7 +962,7 @@
     .shop-item-price { font-family: var(--font-display); font-size: clamp(1.35rem, 3vw, 1.75rem); font-weight: 400; color: var(--ink); }
     .shop-item-price-note { font-size: 0.65rem; color: var(--light); }
 
-    .shop-item-actions { display: flex; gap: 0.6rem; margin-bottom: 0; }
+    .shop-item-actions { display: flex; gap: 0.6rem; margin-bottom: 0; padding-bottom: 0; }
     .shop-btn-cart { padding: 0.75rem 2.25rem; background: var(--ink); color: var(--white); font-family: var(--font-body); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; border: 1.5px solid var(--ink); cursor: pointer; }
     .shop-btn-inquire { padding: 0.75rem 2.25rem; background: transparent; color: var(--ink); font-family: var(--font-body); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; border: 1.5px solid var(--mid); cursor: pointer; }
 
@@ -1086,3 +1086,13 @@
     .modal-success { text-align: center; padding: 1rem 0; }
     .modal-success-title { font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 0.5rem; }
     .modal-success-msg { font-size: 0.85rem; color: var(--mid); }
+
+    .shop-item-notes { border-top: 1px solid var(--border); padding-top: 1.25rem; margin-top: 1.5rem; }
+    .notes-toggle { display: flex; align-items: center; gap: 0.6rem; background: none; border: none; cursor: pointer; font-family: var(--font-body); font-size: 0.63rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--light); padding: 0; transition: color 0.15s; }
+    .notes-toggle:hover { color: var(--ink); }
+    .notes-toggle-icon { width: 10px; height: 10px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(45deg); transition: transform 0.2s; flex-shrink: 0; margin-top: -2px; }
+    .notes-toggle.open .notes-toggle-icon { transform: rotate(-135deg); margin-top: 2px; }
+    .notes-body { display: none; padding-top: 1.25rem; font-size: 0.88rem; color: var(--mid); line-height: 1.85; }
+    .notes-body.open { display: block; }
+    .notes-body p { margin-bottom: 0.9rem; }
+    .notes-body p:last-child { margin-bottom: 0; }
