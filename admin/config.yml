@@ -26,7 +26,8 @@ collections:
           - label: "Intro paragraphs"
             name: "intro_paragraphs"
             widget: "list"
-            hint: "One entry per paragraph. Use the + button to add another, or the trash icon to remove one."
+            required: false
+            hint: "One entry per paragraph. Use the + button to add another, or the trash icon to remove one. Delete all entries and the whole section disappears from the homepage — no placeholder text left behind."
           - label: "Sign-off"
             name: "signoff"
             widget: "string"
