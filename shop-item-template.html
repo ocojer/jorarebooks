@@ -109,9 +109,13 @@
   </div>
 
   <script>
-    function switchImage(src, alt, thumb) {
-      document.querySelector('.shop-item-main-image img').src = src;
-      document.querySelector('.shop-item-main-image img').alt = alt;
+    function switchImage(webpSrc, jpgSrc, alt, thumb) {
+      const mainImage = document.querySelector('.shop-item-main-image');
+      const source = mainImage.querySelector('source');
+      const img = mainImage.querySelector('img');
+      if (source) source.srcset = webpSrc;
+      img.src = jpgSrc;
+      img.alt = alt;
       document.querySelectorAll('.shop-item-thumb').forEach(t => t.classList.remove('active'));
       thumb.classList.add('active');
     }

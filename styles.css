@@ -1,5 +1,10 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Makes <picture> a transparent wrapper around its <img> for layout
+   purposes — every existing img selector (width/height/object-fit rules
+   etc.) keeps working exactly as if <picture> weren't there. */
+picture { display: contents; }
+
     :root {
       --ink:    #111111;
       --mid:    #444444;

@@ -7,6 +7,7 @@
 const https = require('https');
 const fs    = require('fs');
 const path  = require('path');
+const sharp = require('sharp');
 
 const RSS_URL           = 'https://feeds.transistor.fm/rare-book-chat';
 const TEMPLATE          = path.join(__dirname, 'template.html');
@@ -30,6 +31,16 @@ const AIRTABLE_TOKEN    = process.env.AIRTABLE_TOKEN || '';
 // once per build into this folder and served locally instead, so pages
 // don't go stale between deploys. See localizeAttachments() below.
 const ASSETS_DIR        = path.join(__dirname, 'shop-assets');
+
+// Every image — from Airtable and from CMS uploads alike — gets resized
+// and converted into WebP (+ JPEG fallback) at these two sizes, written
+// here. "large" covers hero/main/story images; "thumb" covers grid
+// cards, list rows, related items, and the item-page thumbnail strip.
+const OPTIMIZED_DIR      = path.join(__dirname, 'optimized');
+const IMAGE_SIZES = {
+  large: { width: 1600, quality: 82 },
+  thumb: { width: 500,  quality: 78 },
+};
 
 // ── Fetch Airtable inventory ────────────────────────────────
 // Pulls all records from the Items table with Availability = Available.
@@ -140,9 +151,9 @@ function loadHomepage() {
   }
 }
 
-function renderHero(data) {
+async function renderHero(data) {
   if (!data.hero_image) return '';
-  return `<img src="${data.hero_image}" alt="${data.hero_alt || ''}">`;
+  return cmsImageHtml(data.hero_image, data.hero_alt || '', 'large');
 }
 
 function renderIntro(data) {
@@ -174,7 +185,7 @@ function renderComingSoon() {
 }
 
 // ── Build stacked wide sections from content/sections/*.json ──
-function renderSections() {
+async function renderSections() {
   if (!fs.existsSync(SECTIONS_DIR)) {
     console.error(`Sections folder not found at ${SECTIONS_DIR}`);
     return '';
@@ -194,21 +205,23 @@ function renderSections() {
 
   sections.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
-  return sections.map(s => {
+  const blocks = await Promise.all(sections.map(async s => {
     const caption = s.caption
       ? `<div class="wide-section-caption">${s.caption}</div>`
       : '';
     const description = s.description
       ? `<p class="wide-section-desc">${s.description}</p>`
       : '';
+    const imgHtml = await cmsImageHtml(s.image, s.alt || '', 'large', 'class="wide-section-img"');
     return `      <figure class="wide-section">
-        <img src="${s.image}" alt="${s.alt || ''}" class="wide-section-img">
+        ${imgHtml}
         <figcaption>
           ${caption}
           ${description}
         </figcaption>
       </figure>`;
-  }).join('\n\n');
+  }));
+  return blocks.join('\n\n');
 }
 
 // ── Build the holdings grid HTML from content/holdings/*.json ──
@@ -261,15 +274,20 @@ function cardActionsHtml(h) {
 }
 
 // ── Build the holdings grid HTML ─────────────────────────────
-function renderHoldings(holdings) {
-  return holdings.map(h => {
+async function renderHoldings(holdings) {
+  const cards = await Promise.all(holdings.map(async h => {
     const url = holdingUrl(h);
     const actionsHtml = cardActionsHtml(h);
+    // .closest('picture') covers the WebP/JPEG <picture> wrapper; the
+    // (||this) fallback covers the plain <img> case when optimization
+    // failed and cmsImageHtml returned the original file directly.
+    const onerror = `onerror="this.closest('.card-img-wrap').style.background='#ece7de'; (this.closest('picture')||this).style.display='none';"`;
+    const imgHtml = await cmsImageHtml(h.image, h.alt || '', 'thumb', onerror);
 
     return `      <div class="holding-card">
         <a class="card-img-link" href="${url}">
           <div class="card-img-wrap">
-            <img src="${h.image}" alt="${h.alt || ''}" onerror="this.style.display='none'; this.parentElement.style.background='#ece7de';">
+            ${imgHtml}
           </div>
         </a>
         <div class="card-body">
@@ -278,7 +296,8 @@ function renderHoldings(holdings) {
           <div class="card-actions">${actionsHtml}</div>
         </div>
       </div>`;
-  }).join('\n\n');
+  }));
+  return cards.join('\n\n');
 }
 
 // ── Build the latest episode HTML block ─────────────────────
@@ -330,17 +349,17 @@ function toYouTubeEmbedUrl(url) {
 }
 
 // ── Build one holding's story page ───────────────────────────
-function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml) {
+async function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml) {
   const plainTitle = holding.title.replace(/<[^>]+>/g, '');
   const description = (holding.description || '').replace(/<[^>]+>/g, '').slice(0, 160);
   const canonicalUrl = `https://www.jorarebooks.com/${holding.slug}/`;
 
   const heroImageHtml = holding.image
-    ? `<img src="/${holding.image}" alt="${holding.alt || ''}">`
+    ? await cmsImageHtml(holding.image, holding.alt || '', 'large')
     : '';
 
   const blocks = Array.isArray(holding.story_body) ? holding.story_body : [];
-  const bodyHtml = blocks.map(b => {
+  const bodyParts = await Promise.all(blocks.map(async b => {
     // Backward-compatible: older entries may just be plain strings.
     const block = typeof b === 'string' ? { text: b } : b;
     const parts = [];
@@ -348,13 +367,15 @@ function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml) {
     if (block.text) parts.push(`      <p>${block.text}</p>`);
     if (block.quote) parts.push(`      <blockquote class="story-quote">${block.quote}</blockquote>`);
     if (block.image) {
+      const imgHtml = await cmsImageHtml(block.image, block.image_alt || '', 'large');
       parts.push(`      <figure class="story-inline-image">
-        <img src="/${block.image}" alt="${block.image_alt || ''}">
+        ${imgHtml}
         ${block.image_caption ? `<figcaption class="story-gallery-caption">${block.image_caption}</figcaption>` : ''}
       </figure>`);
     }
     return parts.join('\n');
-  }).filter(Boolean).join('\n');
+  }));
+  const bodyHtml = bodyParts.filter(Boolean).join('\n');
 
   const embedUrl = toYouTubeEmbedUrl(holding.video_url);
   const videoHtml = embedUrl
@@ -366,12 +387,16 @@ function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml) {
     : '';
 
   const gallery = Array.isArray(holding.gallery) ? holding.gallery : [];
-  const galleryHtml = gallery.length
-    ? `<div class="story-gallery">
-${gallery.map(g => `      <figure class="story-gallery-item">
-        <img src="/${g.image}" alt="${g.alt || ''}">
+  const galleryItems = await Promise.all(gallery.map(async g => {
+    const imgHtml = await cmsImageHtml(g.image, g.alt || '', 'large');
+    return `      <figure class="story-gallery-item">
+        ${imgHtml}
         ${g.caption ? `<figcaption class="story-gallery-caption">${g.caption}</figcaption>` : ''}
-      </figure>`).join('\n')}
+      </figure>`;
+  }));
+  const galleryHtml = galleryItems.length
+    ? `<div class="story-gallery">
+${galleryItems.join('\n')}
     </div>`
     : '';
 
@@ -396,10 +421,13 @@ ${bodyHtml}
   const pdfCaptionHtml = holding.pdf_caption
     ? `<span class="story-pdf-caption">${holding.pdf_caption}</span>`
     : '';
+  const pdfCoverImgHtml = hasPdfCard
+    ? await cmsImageHtml(holding.pdf_cover_image, 'Cover of the PDF', 'thumb')
+    : '';
   const pdfCardHtml = hasPdfCard
     ? `<aside class="story-pdf-card">
         <a href="${holding.pdf_url}" target="_blank" rel="noopener noreferrer">
-          <img src="/${holding.pdf_cover_image}" alt="Cover of the PDF">
+          ${pdfCoverImgHtml}
         </a>
         <a class="story-pdf-link" href="${holding.pdf_url}" target="_blank" rel="noopener noreferrer">View PDF ↓</a>
         ${pdfCaptionHtml}
@@ -504,51 +532,151 @@ function downloadFile(url, destPath) {
   });
 }
 
+// ── Download one file into memory, following redirects — used for images,
+//    which get piped straight into sharp rather than saved to disk raw.
+function downloadToBuffer(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, res => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        return downloadToBuffer(res.headers.location).then(resolve).catch(reject);
+      }
+      if (res.statusCode !== 200) {
+        return reject(new Error(`HTTP ${res.statusCode}`));
+      }
+      const chunks = [];
+      res.on('data', c => chunks.push(c));
+      res.on('end', () => resolve(Buffer.concat(chunks)));
+      res.on('error', reject);
+    }).on('error', reject);
+  });
+}
+
 // Keep only characters that are safe in a URL path segment.
 function safeFilename(name) {
   return (name || 'file').replace(/[^a-zA-Z0-9.\-_]/g, '-');
 }
 
-// ── Download every image/PDF attachment for one record and rewrite the
-//    record's fields in place to point at the local, permanent copy —
-//    instead of Airtable's temporary signed URL, which expires a few
-//    hours after being issued and is the reason images and PDF links
-//    have been going stale between deploys. Every downstream renderer
-//    reads .url off these same attachment objects, so mutating them here
-//    is enough to localize everything: shop grid/list thumbnails, item
-//    page thumbnails and main image, related-item cards, and PDF links.
-async function localizeAttachments(record) {
-  const attachmentFields = ['IMAGE(S)', 'PDF', 'PDF COVER IMAGE'];
-  for (const fieldName of attachmentFields) {
-    const atts = fieldArr(record, fieldName);
-    for (const att of atts) {
+// ── Resize + convert one image source into a WebP + JPEG pair at a given
+//    size preset, written into OPTIMIZED_DIR. Skips the work if both
+//    files already exist from earlier in this same build run. Returns
+//    the public (root-relative) paths for use in a <picture> tag.
+async function makeImageVariant(sourceBuffer, keySlug, sizeName) {
+  fs.mkdirSync(OPTIMIZED_DIR, { recursive: true });
+  const preset = IMAGE_SIZES[sizeName];
+  const webpName = `${keySlug}-${sizeName}.webp`;
+  const jpgName  = `${keySlug}-${sizeName}.jpg`;
+  const webpPath = path.join(OPTIMIZED_DIR, webpName);
+  const jpgPath  = path.join(OPTIMIZED_DIR, jpgName);
+
+  if (!fs.existsSync(webpPath) || !fs.existsSync(jpgPath)) {
+    const img = sharp(sourceBuffer).rotate().resize({ width: preset.width, withoutEnlargement: true });
+    await Promise.all([
+      img.clone().webp({ quality: preset.quality }).toFile(webpPath),
+      img.clone().jpeg({ quality: preset.quality, mozjpeg: true }).toFile(jpgPath),
+    ]);
+  }
+  return { webp: `/optimized/${webpName}`, jpg: `/optimized/${jpgName}` };
+}
+
+// ── Download & convert every image attachment (IMAGE(S), PDF COVER IMAGE)
+//    for one record into large/thumb WebP+JPEG pairs, stored back onto
+//    the attachment object as att.large / att.thumb. Every downstream
+//    renderer reads these off the same attachment objects via
+//    firstImageVariant() / renderThumbs(), so this one pass covers shop
+//    grid/list thumbnails, item page thumbnails and main image, and
+//    related-item cards.
+async function localizeImageAttachments(record) {
+  for (const fieldName of ['IMAGE(S)', 'PDF COVER IMAGE']) {
+    for (const att of fieldArr(record, fieldName)) {
       if (!att.url) continue;
-      const fname = safeFilename(`${record.id}-${att.id || 'att'}-${att.filename || 'file'}`);
-      const destPath = path.join(ASSETS_DIR, fname);
-      const publicPath = `/shop-assets/${fname}`;
-      if (!fs.existsSync(destPath)) {
-        try {
-          await downloadFile(att.url, destPath);
-        } catch (e) {
-          console.error(`  Failed to download ${fieldName} for "${field(record, 'TITLE')}": ${e.message} — leaving temporary Airtable URL in place.`);
-          continue;
-        }
+      const keySlug = safeFilename(`${record.id}-${att.id || 'att'}`);
+      try {
+        const buffer = await downloadToBuffer(att.url);
+        att.large = await makeImageVariant(buffer, keySlug, 'large');
+        att.thumb = await makeImageVariant(buffer, keySlug, 'thumb');
+      } catch (e) {
+        console.error(`  Failed to process ${fieldName} for "${field(record, 'TITLE')}": ${e.message} — image will be skipped.`);
       }
-      att.url = publicPath;
     }
   }
+}
+
+// ── Download the actual PDF file (condition reports, etc.) as-is — not
+//    an image, so nothing to convert, but same reasoning as above:
+//    Airtable's signed URL expires, this makes the link permanent.
+async function localizePdfAttachments(record) {
+  for (const att of fieldArr(record, 'PDF')) {
+    if (!att.url) continue;
+    const fname = safeFilename(`${record.id}-${att.id || 'att'}-${att.filename || 'file.pdf'}`);
+    const destPath = path.join(ASSETS_DIR, fname);
+    if (!fs.existsSync(destPath)) {
+      try {
+        await downloadFile(att.url, destPath);
+      } catch (e) {
+        console.error(`  Failed to download PDF for "${field(record, 'TITLE')}": ${e.message} — leaving temporary Airtable URL in place.`);
+        continue;
+      }
+    }
+    att.url = `/shop-assets/${fname}`;
+  }
+}
+
+async function localizeAttachments(record) {
+  await localizePdfAttachments(record);
+  await localizeImageAttachments(record);
 }
 
 // Runs localizeAttachments across every record, sequentially, so we don't
 // hammer Airtable's CDN with dozens of simultaneous downloads at once.
 async function localizeAllAttachments(records) {
   fs.mkdirSync(ASSETS_DIR, { recursive: true });
+  fs.mkdirSync(OPTIMIZED_DIR, { recursive: true });
   let count = 0;
   for (const record of records) {
     await localizeAttachments(record);
     count++;
   }
   console.log(`Localized attachments for ${count} inventory records.`);
+}
+
+// ── First image attachment's optimized variant for a given size, or null
+//    if there isn't one (missing field, or it failed to process).
+function firstImageVariant(record, fieldName, size) {
+  const atts = fieldArr(record, fieldName);
+  return (atts.length && atts[0][size]) ? atts[0][size] : null;
+}
+
+// ── Renders a <picture> element with a WebP source and a JPEG fallback —
+//    covers the ~97% of visitors on WebP-capable browsers and falls
+//    through to the <img> tag for the small remainder (old Safari/IE).
+function pictureTag(variant, alt, extraImgAttrs = '') {
+  if (!variant) return '';
+  const safeAlt = (alt || '').replace(/"/g, '&quot;');
+  return `<picture><source srcset="${variant.webp}" type="image/webp"><img src="${variant.jpg}" alt="${safeAlt}"${extraImgAttrs ? ' ' + extraImgAttrs : ''}></picture>`;
+}
+
+// ── Resolve + optimize a CMS-uploaded image (Sveltia commits these flat
+//    into the repo root — see media_folder/public_folder in config.yml)
+//    into a <picture> tag at the given size. Falls back to the original
+//    uploaded file directly if optimization fails for any reason, so a
+//    bad image never means a blank page — just a non-optimized one.
+async function cmsImageHtml(relativePath, alt, size, extraImgAttrs = '') {
+  if (!relativePath || !relativePath.trim()) return '';
+  const clean = relativePath.replace(/^\/+/, '');
+  const sourcePath = path.join(__dirname, clean);
+  const safeAlt = (alt || '');
+  if (!fs.existsSync(sourcePath)) {
+    console.error(`  CMS image not found on disk, skipping optimization: ${clean}`);
+    return `<img src="/${clean}" alt="${safeAlt.replace(/"/g, '&quot;')}"${extraImgAttrs ? ' ' + extraImgAttrs : ''}>`;
+  }
+  const keySlug = safeFilename(clean.replace(/\.[^.]+$/, ''));
+  try {
+    const variant = await makeImageVariant(fs.readFileSync(sourcePath), keySlug, size);
+    return pictureTag(variant, safeAlt, extraImgAttrs);
+  } catch (e) {
+    console.error(`  Failed to optimize ${clean}: ${e.message} — using original file.`);
+    return `<img src="/${clean}" alt="${safeAlt.replace(/"/g, '&quot;')}"${extraImgAttrs ? ' ' + extraImgAttrs : ''}>`;
+  }
 }
 
 // ── Derive a URL-safe slug from an Airtable record ───────────
@@ -559,22 +687,20 @@ function itemSlug(record) {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-// ── Build the first Airtable attachment URL, if any ──────────
-function firstImageUrl(record, fieldName) {
-  const atts = fieldArr(record, fieldName);
-  return atts.length ? atts[0].url : '';
-}
-
-// ── Render all Airtable attachment images as thumbnail strip ─
+// ── Render all Airtable attachment images as thumbnail strip — each
+//    tile shows the small "thumb" variant; clicking swaps the sticky
+//    main image to the "large" variant (see switchImage() in the
+//    shop-item-template.html script block).
 function renderThumbs(record) {
   const atts = fieldArr(record, 'IMAGE(S)');
   if (!atts.length) return '';
-  return atts.map((att, i) =>
-    `<div class="shop-item-thumb${i === 0 ? ' active' : ''}"
-      onclick="switchImage('${att.url}','${att.filename}',this)">
-      <img src="${att.url}" alt="${att.filename}" loading="lazy">
-    </div>`
-  ).join('\n');
+  return atts.filter(att => att.thumb && att.large).map((att, i) => {
+    const alt = (att.filename || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    return `<div class="shop-item-thumb${i === 0 ? ' active' : ''}"
+      onclick="switchImage('${att.large.webp}','${att.large.jpg}','${alt}',this)">
+      ${pictureTag(att.thumb, att.filename || '', 'loading="lazy"')}
+    </div>`;
+  }).join('\n');
 }
 
 // ── Render the contact block from site-info ──────────────────
@@ -672,7 +798,6 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
   const listPrice = field(record, 'MARKET PRICE');
   const inquireOnly = record.fields['INQUIRE ONLY?'];
   const slug = itemSlug(record);
-  const images = fieldArr(record, 'IMAGE(S)');
 
   const headline = field(record, 'HEADLINE');
   const notes = field(record, 'NOTES');
@@ -707,11 +832,9 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
   // Contact block
   const contactHtml = renderContactBlock(siteInfo);
 
-  // Main image
-  const mainImgUrl = images.length ? images[0].url : '';
-  const mainImgHtml = mainImgUrl
-    ? `<img src="${mainImgUrl}" alt="${title}" loading="eager">`
-    : '';
+  // Main image — large variant, matching what the thumbnail strip swaps to
+  const mainVariant = firstImageVariant(record, 'IMAGE(S)', 'large');
+  const mainImgHtml = pictureTag(mainVariant, title, 'loading="eager"');
 
   // Related items — same category, excluding self, up to 4
   const related = allRecords
@@ -729,12 +852,12 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
       <div class="shop-item-related-grid">
         ${related.map(r => {
           const rSlug = itemSlug(r);
-          const rImg = firstImageUrl(r, 'IMAGE(S)');
+          const rVariant = firstImageVariant(r, 'IMAGE(S)', 'thumb');
           const rTitle = field(r, 'TITLE');
           const rAuthor = field(r, 'AUTHOR');
           const rPrice = field(r, 'PRICE/INQUIRE') || (r.fields['INQUIRE ONLY?'] ? 'Inquire' : '');
           return `<a href="/shop/${rSlug}/" class="related-card">
-            <div class="related-card-img">${rImg ? `<img src="${rImg}" alt="${rTitle}" loading="lazy">` : ''}</div>
+            <div class="related-card-img">${pictureTag(rVariant, rTitle, 'loading="lazy"')}</div>
             <div class="related-card-author">${rAuthor}</div>
             <div class="related-card-title">${rTitle}</div>
             <div class="related-card-price">${rPrice}</div>
@@ -794,14 +917,14 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
     const price = field(r, 'PRICE/INQUIRE');
     const inquireOnly = r.fields['INQUIRE ONLY?'];
     const priceDisplay = (!inquireOnly && price) ? price : 'Inquire';
-    const imgUrl = firstImageUrl(r, 'IMAGE(S)');
+    const imgVariant = firstImageVariant(r, 'IMAGE(S)', 'thumb');
     const cats = fieldArr(r, 'CATEGORY').join(',');
     const isArchive = r.fields['IS ARCHIVE?'];
     const meta = [place, date].filter(Boolean).join(', ');
 
     return `<a href="/shop/${slug}/" class="grid-card" data-categories="${cats}">
       <div class="grid-img-wrap">
-        <div class="grid-img">${imgUrl ? `<img src="${imgUrl}" alt="${title}" loading="lazy">` : ''}</div>
+        <div class="grid-img">${pictureTag(imgVariant, title, 'loading="lazy"')}</div>
         ${isArchive ? '<span class="grid-badge">Archive</span>' : ''}
       </div>
       <div class="grid-author">${author}</div>
@@ -826,7 +949,7 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
     const priceDisplay = showPrice ? (price || `$${Number(marketPrice).toLocaleString()}`) : null;
     const desc = field(r, 'DESCRIPTION');
     const pullQuote = field(r, 'PULL QUOTE');
-    const imgUrl = firstImageUrl(r, 'IMAGE(S)');
+    const imgVariant = firstImageVariant(r, 'IMAGE(S)', 'thumb');
     const cats = fieldArr(r, 'CATEGORY').join(',');
     const isArchive = r.fields['IS ARCHIVE?'];
     const meta = [place, publisher, date].filter(Boolean).join(' · ');
@@ -844,7 +967,7 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
       <a href="/shop/${slug}/" class="list-view" onclick="event.stopPropagation()">View →</a>`;
 
     return `<div class="list-card" data-categories="${cats}" onclick="window.location='/shop/${slug}/'" style="cursor:pointer;">
-      <div class="list-img">${imgUrl ? `<img src="${imgUrl}" alt="${title}" loading="lazy">` : ''}</div>
+      <div class="list-img">${pictureTag(imgVariant, title, 'loading="lazy"')}</div>
       <div class="list-body">
         ${pullQuote ? `<div class="list-pull">"${pullQuote}"</div>` : ''}
         <div class="list-author">${author}</div>
@@ -886,15 +1009,15 @@ async function build() {
 
   console.log('Rendering homepage content...');
   const homepageData = loadHomepage();
-  const heroHtml = renderHero(homepageData);
+  const heroHtml = await renderHero(homepageData);
   const introHtml = renderIntro(homepageData);
 
   console.log('Loading holdings...');
   const holdings = loadHoldings();
-  const holdingsHtml = renderHoldings(holdings);
+  const holdingsHtml = await renderHoldings(holdings);
 
   console.log('Rendering sections...');
-  const sectionsHtml = renderSections();
+  const sectionsHtml = await renderSections();
 
   console.log('Rendering coming-soon text...');
   const comingSoonHtml = renderComingSoon();
@@ -968,7 +1091,7 @@ async function build() {
   console.log('Building story pages...');
   const storyHoldings = holdings.filter(h => h.slug && h.slug.trim());
   for (const holding of storyHoldings) {
-    const storyHtml = renderStoryPage(holding, holdings, mastheadHtml, footerHtml);
+    const storyHtml = await renderStoryPage(holding, holdings, mastheadHtml, footerHtml);
     const outDir = path.join(__dirname, holding.slug);
     fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(path.join(outDir, 'index.html'), storyHtml, 'utf8');
