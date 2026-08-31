@@ -273,18 +273,19 @@ function cardActionsHtml(h) {
   return actions.join('<span class="card-action-sep">·</span>');
 }
 
-// ── Build the holdings grid HTML ─────────────────────────────
-async function renderHoldings(holdings) {
-  const cards = await Promise.all(holdings.map(async h => {
-    const url = holdingUrl(h);
-    const actionsHtml = cardActionsHtml(h);
-    // .closest('picture') covers the WebP/JPEG <picture> wrapper; the
-    // (||this) fallback covers the plain <img> case when optimization
-    // failed and cmsImageHtml returned the original file directly.
-    const onerror = `onerror="this.closest('.card-img-wrap').style.background='#ece7de'; (this.closest('picture')||this).style.display='none';"`;
-    const imgHtml = await cmsImageHtml(h.image, h.alt || '', 'thumb', onerror);
+// Renders a single holding as a card (image, title, description, action
+// row) — shared by the homepage grid and the story page's "More from
+// the collection" section, so both stay visually identical.
+async function renderHoldingCard(h) {
+  const url = holdingUrl(h);
+  const actionsHtml = cardActionsHtml(h);
+  // .closest('picture') covers the WebP/JPEG <picture> wrapper; the
+  // (||this) fallback covers the plain <img> case when optimization
+  // failed and cmsImageHtml returned the original file directly.
+  const onerror = `onerror="this.closest('.card-img-wrap').style.background='#ece7de'; (this.closest('picture')||this).style.display='none';"`;
+  const imgHtml = await cmsImageHtml(h.image, h.alt || '', 'thumb', onerror);
 
-    return `      <div class="holding-card">
+  return `      <div class="holding-card">
         <a class="card-img-link" href="${url}">
           <div class="card-img-wrap">
             ${imgHtml}
@@ -296,7 +297,11 @@ async function renderHoldings(holdings) {
           <div class="card-actions">${actionsHtml}</div>
         </div>
       </div>`;
-  }));
+}
+
+// ── Build the holdings grid HTML ─────────────────────────────
+async function renderHoldings(holdings) {
+  const cards = await Promise.all(holdings.map(renderHoldingCard));
   return cards.join('\n\n');
 }
 
@@ -356,7 +361,17 @@ function splitParagraphs(text) {
   return (text || '').split(/\n+/).map(p => p.trim()).filter(Boolean);
 }
 
-async function renderStoryPage(holding, mastheadHtml, footerHtml) {
+// Fisher-Yates — avoids the subtle bias of sort(() => Math.random() - 0.5).
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+async function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml) {
   const plainTitle = holding.title.replace(/<[^>]+>/g, '');
   const description = (holding.description || '').replace(/<[^>]+>/g, '').slice(0, 160);
   const canonicalUrl = `https://www.jorarebooks.com/${holding.slug}/`;
@@ -487,12 +502,32 @@ ${galleryItems.join('\n')}
     ? `<p class="story-pdf-reminder">Full description${holding.pdf_caption ? ' — ' + holding.pdf_caption : ''}. <a href="${pdfHref}" target="_blank" rel="noopener noreferrer">View PDF</a></p>`
     : '';
 
+  // ── More from the collection — up to 3 other holdings with their own
+  //    story page, randomly picked on every build so the page doesn't
+  //    end on a dead end. Hidden entirely until there's at least one
+  //    other story page to point to.
+  const otherStoryHoldings = allHoldings.filter(h => h.slug && h.slug.trim() && h.slug !== holding.slug);
+  const pickedHoldings = shuffle(otherStoryHoldings).slice(0, 3);
+  const moreCards = await Promise.all(pickedHoldings.map(renderHoldingCard));
+  const moreHtml = moreCards.length
+    ? `<div class="story-more">
+      <div class="story-highlights-intro">
+        <span class="story-highlights-label">More from the collection</span>
+      </div>
+      <hr class="divider" style="margin-top:0;">
+      <div class="holdings-grid">
+${moreCards.join('\n\n')}
+      </div>
+    </div>`
+    : '';
+
   const layoutHtml = `<div class="story-content">
       ${introRowHtml}
       ${heroBlockHtml}
       ${highlightsHtml}
       ${galleryHtml}
       ${pdfReminderHtml}
+      ${moreHtml}
     </div>`;
 
   let output = fs.readFileSync(STORY_TEMPLATE, 'utf8');
@@ -1141,7 +1176,7 @@ async function build() {
   console.log('Building story pages...');
   const storyHoldings = holdings.filter(h => h.slug && h.slug.trim());
   for (const holding of storyHoldings) {
-    const storyHtml = await renderStoryPage(holding, mastheadHtml, footerHtml);
+    const storyHtml = await renderStoryPage(holding, holdings, mastheadHtml, footerHtml);
     const outDir = path.join(__dirname, holding.slug);
     fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(path.join(outDir, 'index.html'), storyHtml, 'utf8');

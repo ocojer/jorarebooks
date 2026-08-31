@@ -525,26 +525,13 @@ picture { display: contents; }
 
     /* ── STORY PAGES ── */
 
-    .story-back {
-      display: inline-block;
-      font-size: 0.68rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--light);
-      margin-top: clamp(1rem, 3vw, 2rem);
-      margin-bottom: 2rem;
-      transition: color 0.2s;
-    }
-
-    .story-back:hover { color: var(--ink); }
-
     .story-title {
       font-family: var(--font-display);
       font-size: var(--size-headline);
       font-weight: 400;
       line-height: 1.2;
       color: var(--ink);
-      margin: 0 auto clamp(0.85rem, 2vw, 1.1rem);
+      margin: clamp(2.5rem, 6vw, 4rem) auto clamp(0.85rem, 2vw, 1.1rem);
       max-width: 900px;
     }
 
@@ -719,6 +706,14 @@ picture { display: contents; }
       font-weight: 500;
       font-size: 1.35rem;
       color: var(--ink);
+    }
+
+    /* Closing section — reuses .story-highlights-intro/-label for a
+       consistent transition treatment, but needs its own top margin
+       since whatever precedes it (the PDF reminder line, gallery, or
+       highlights directly) doesn't reliably leave enough space above. */
+    .story-more {
+      margin-top: clamp(2.5rem, 5vw, 3.5rem);
     }
 
     .story-subhead {
