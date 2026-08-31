@@ -25,6 +25,12 @@ const AIRTABLE_BASE_ID  = 'appcfXqSzvoq0by4T';
 const AIRTABLE_TABLE    = 'ITEMS';
 const AIRTABLE_TOKEN    = process.env.AIRTABLE_TOKEN || '';
 
+// Airtable attachment URLs (images, PDFs) are temporary signed URLs that
+// expire a few hours after being issued. Every attachment gets downloaded
+// once per build into this folder and served locally instead, so pages
+// don't go stale between deploys. See localizeAttachments() below.
+const ASSETS_DIR        = path.join(__dirname, 'shop-assets');
+
 // ── Fetch Airtable inventory ────────────────────────────────
 // Pulls all records from the Items table with Availability = Available.
 // Returns an empty array (not a fatal error) if the token is missing or
@@ -472,6 +478,79 @@ function fieldArr(record, name) {
   return Array.isArray((record.fields || {})[name]) ? record.fields[name] : [];
 }
 
+// ── Download one file, following redirects ───────────────────
+function downloadFile(url, destPath) {
+  return new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(destPath);
+    https.get(url, res => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        file.close();
+        fs.unlink(destPath, () => {});
+        return downloadFile(res.headers.location, destPath).then(resolve).catch(reject);
+      }
+      if (res.statusCode !== 200) {
+        file.close();
+        fs.unlink(destPath, () => {});
+        return reject(new Error(`HTTP ${res.statusCode}`));
+      }
+      res.pipe(file);
+      file.on('finish', () => file.close(() => resolve()));
+      file.on('error', reject);
+    }).on('error', err => {
+      file.close();
+      fs.unlink(destPath, () => {});
+      reject(err);
+    });
+  });
+}
+
+// Keep only characters that are safe in a URL path segment.
+function safeFilename(name) {
+  return (name || 'file').replace(/[^a-zA-Z0-9.\-_]/g, '-');
+}
+
+// ── Download every image/PDF attachment for one record and rewrite the
+//    record's fields in place to point at the local, permanent copy —
+//    instead of Airtable's temporary signed URL, which expires a few
+//    hours after being issued and is the reason images and PDF links
+//    have been going stale between deploys. Every downstream renderer
+//    reads .url off these same attachment objects, so mutating them here
+//    is enough to localize everything: shop grid/list thumbnails, item
+//    page thumbnails and main image, related-item cards, and PDF links.
+async function localizeAttachments(record) {
+  const attachmentFields = ['IMAGE(S)', 'PDF', 'PDF COVER IMAGE'];
+  for (const fieldName of attachmentFields) {
+    const atts = fieldArr(record, fieldName);
+    for (const att of atts) {
+      if (!att.url) continue;
+      const fname = safeFilename(`${record.id}-${att.id || 'att'}-${att.filename || 'file'}`);
+      const destPath = path.join(ASSETS_DIR, fname);
+      const publicPath = `/shop-assets/${fname}`;
+      if (!fs.existsSync(destPath)) {
+        try {
+          await downloadFile(att.url, destPath);
+        } catch (e) {
+          console.error(`  Failed to download ${fieldName} for "${field(record, 'TITLE')}": ${e.message} — leaving temporary Airtable URL in place.`);
+          continue;
+        }
+      }
+      att.url = publicPath;
+    }
+  }
+}
+
+// Runs localizeAttachments across every record, sequentially, so we don't
+// hammer Airtable's CDN with dozens of simultaneous downloads at once.
+async function localizeAllAttachments(records) {
+  fs.mkdirSync(ASSETS_DIR, { recursive: true });
+  let count = 0;
+  for (const record of records) {
+    await localizeAttachments(record);
+    count++;
+  }
+  console.log(`Localized attachments for ${count} inventory records.`);
+}
+
 // ── Derive a URL-safe slug from an Airtable record ───────────
 function itemSlug(record) {
   const manual = field(record, 'SLUG');
@@ -801,6 +880,9 @@ async function build() {
   const inventoryRecords = await fetchAirtable();
   console.log(`Inventory: ${inventoryRecords.length} available items.`);
   if (inventoryRecords.length > 0) { console.log("DEBUG fields:", Object.keys(inventoryRecords[0].fields || {}).join(", ")); }
+
+  console.log('Downloading and localizing Airtable attachments (images, PDFs)...');
+  await localizeAllAttachments(inventoryRecords);
 
   console.log('Rendering homepage content...');
   const homepageData = loadHomepage();
