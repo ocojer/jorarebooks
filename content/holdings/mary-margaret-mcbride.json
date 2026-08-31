@@ -1,9 +1,21 @@
 {
-  "order": 3,
   "title": "Mary Margaret McBride and the Invention of Talk Radio",
-  "description": "26 manuscript broadcast journals, over 12,000 pages, documenting more than 3,500 episodes of her daily radio program, 1935–1954.",
+  "contents": "26 manuscript broadcast journals, over 12,000 pages, documenting more than 3,500 episodes of her daily radio program, 1935–1954.",
+  "description": "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).\n\nIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).",
   "image": "MCBRIDE.jpg",
   "alt": "Mary Margaret McBride broadcast journals",
+  "hero_caption": "",
   "price": "Inquire",
-  "url": "#"
+  "pdf_url": "",
+  "pdf_cover_image": "",
+  "pdf_caption": "",
+  "video_url": "",
+  "pull_quote": "",
+  "pull_quote_attribution": "",
+  "order": 3,
+  "url": "#",
+  "slug": "",
+  "highlights_label": "Highlights from the archive",
+  "story_body": [],
+  "gallery": []
 }
