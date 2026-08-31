@@ -1,16 +1,21 @@
 {
   "title": "Steve Jobs, the Digital Revolution, and the Birth of the Connected World",
-  "description": "23 manuscript notebooks, 2,868 pages. Apple's first COO, 1983–1995, together with 1,000+ business documents annotated by Jobs, Sculley, and others.",
+  "contents": "23 manuscript notebooks, 2,868 pages. Apple's first COO, 1983–1995, together with 1,000+ business documents annotated by Jobs, Sculley, and others.",
+  "description": "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).\n\nIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).",
   "image": "Notebooks_July23.jpg",
   "alt": "Yocam Apple archive notebooks",
+  "hero_caption": "",
   "price": "Inquire",
   "pdf_url": "",
   "pdf_cover_image": "",
   "pdf_caption": "",
   "video_url": "",
+  "pull_quote": "",
+  "pull_quote_attribution": "",
   "order": 2,
   "url": "#",
   "slug": "",
+  "highlights_label": "Highlights from the archive",
   "story_body": [],
   "gallery": []
 }
