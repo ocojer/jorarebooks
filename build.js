@@ -273,9 +273,12 @@ function cardActionsHtml(h) {
   return actions.join('<span class="card-action-sep">·</span>');
 }
 
-// Renders a single holding as a card (image, title, description, action
+// Renders a single holding as a card (image, title, contents, action
 // row) — shared by the homepage grid and the story page's "More from
-// the collection" section, so both stay visually identical.
+// the collection" section, so both stay visually identical. Uses
+// Contents rather than Description for the blurb line: Description can
+// now run to several paragraphs (the story page's intro text), which
+// reads fine there but is too long for a compact card.
 async function renderHoldingCard(h) {
   const url = holdingUrl(h);
   const actionsHtml = cardActionsHtml(h);
@@ -284,6 +287,7 @@ async function renderHoldingCard(h) {
   // failed and cmsImageHtml returned the original file directly.
   const onerror = `onerror="this.closest('.card-img-wrap').style.background='#ece7de'; (this.closest('picture')||this).style.display='none';"`;
   const imgHtml = await cmsImageHtml(h.image, h.alt || '', 'thumb', onerror);
+  const cardBlurb = splitParagraphs(h.contents)[0] || '';
 
   return `      <div class="holding-card">
         <a class="card-img-link" href="${url}">
@@ -293,7 +297,7 @@ async function renderHoldingCard(h) {
         </a>
         <div class="card-body">
           <div class="card-title">${h.title}</div>
-          <p class="card-desc">${h.description}</p>
+          <p class="card-desc">${cardBlurb}</p>
           <div class="card-actions">${actionsHtml}</div>
         </div>
       </div>`;
