@@ -567,7 +567,13 @@ function resolveLink(p) {
   if (!p || !p.trim()) return '';
   const trimmed = p.trim();
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  const withSlash = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  // CMS-uploaded filenames keep whatever spaces/punctuation the original
+  // file had (unlike images, which get renamed during optimization) —
+  // encodeURI turns "/Fred Roos Archive Cover.pdf" into a href the
+  // browser will actually resolve, without re-encoding an already-correct
+  // external URL (handled above) or double-encoding a literal "%".
+  return encodeURI(withSlash);
 }
 
 // ── Resize + convert one image source into a WebP + JPEG pair at a given
