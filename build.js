@@ -356,7 +356,7 @@ function splitParagraphs(text) {
   return (text || '').split(/\n+/).map(p => p.trim()).filter(Boolean);
 }
 
-async function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml) {
+async function renderStoryPage(holding, mastheadHtml, footerHtml) {
   const plainTitle = holding.title.replace(/<[^>]+>/g, '');
   const description = (holding.description || '').replace(/<[^>]+>/g, '').slice(0, 160);
   const canonicalUrl = `https://www.jorarebooks.com/${holding.slug}/`;
@@ -495,27 +495,11 @@ ${galleryItems.join('\n')}
       ${pdfReminderHtml}
     </div>`;
 
-  const actionsHtml = cardActionsHtml(holding);
-
-  // Prev/next only among holdings that actually have a story page.
-  const storyHoldings = allHoldings.filter(h => h.slug && h.slug.trim());
-  const idx = storyHoldings.findIndex(h => h.slug === holding.slug);
-  const prev = idx > 0 ? storyHoldings[idx - 1] : null;
-  const next = idx >= 0 && idx < storyHoldings.length - 1 ? storyHoldings[idx + 1] : null;
-
-  const prevHtml = prev
-    ? `<a class="story-prev" href="/${prev.slug}/">← ${prev.title.replace(/<[^>]+>/g, '')}</a>`
-    : '<span></span>';
-  const nextHtml = next
-    ? `<a class="story-next" href="/${next.slug}/">${next.title.replace(/<[^>]+>/g, '')} →</a>`
-    : '';
-
   let output = fs.readFileSync(STORY_TEMPLATE, 'utf8');
 
   const required = [
     '<!-- MASTHEAD -->', '<!-- FOOTER -->',
-    '<!-- STORY_TITLE -->', '<!-- STORY_CONTENTS -->', '<!-- STORY_LAYOUT -->',
-    '<!-- STORY_ACTIONS -->', '<!-- STORY_PREV -->', '<!-- STORY_NEXT -->'
+    '<!-- STORY_TITLE -->', '<!-- STORY_CONTENTS -->', '<!-- STORY_LAYOUT -->'
   ];
   for (const marker of required) {
     if (!output.includes(marker)) {
@@ -532,9 +516,6 @@ ${galleryItems.join('\n')}
     .replace('<!-- STORY_TITLE -->', holding.title)
     .replace('<!-- STORY_CONTENTS -->', contentsHtml)
     .replace('<!-- STORY_LAYOUT -->', layoutHtml)
-    .replace('<!-- STORY_ACTIONS -->', actionsHtml)
-    .replace('<!-- STORY_PREV -->', prevHtml)
-    .replace('<!-- STORY_NEXT -->', nextHtml)
     .replace('<!-- FOOTER -->', footerHtml);
 
   return output;
@@ -1160,7 +1141,7 @@ async function build() {
   console.log('Building story pages...');
   const storyHoldings = holdings.filter(h => h.slug && h.slug.trim());
   for (const holding of storyHoldings) {
-    const storyHtml = await renderStoryPage(holding, holdings, mastheadHtml, footerHtml);
+    const storyHtml = await renderStoryPage(holding, mastheadHtml, footerHtml);
     const outDir = path.join(__dirname, holding.slug);
     fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(path.join(outDir, 'index.html'), storyHtml, 'utf8');
