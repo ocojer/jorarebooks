@@ -434,7 +434,7 @@ ${introParas.map(p => `        <p>${p}</p>`).join('\n')}
     ? `<div class="story-video-frame">
         <iframe src="${heroEmbedUrl}" title="${plainTitle}" allowfullscreen></iframe>
       </div>`
-    : (heroImgHtml ? `<div class="story-media-frame">${heroImgHtml}</div>` : '');
+    : (heroImgHtml ? `<div class="story-hero-frame">${heroImgHtml}</div>` : '');
   const heroCaptionHtml = holding.hero_caption
     ? `<p class="story-hero-caption">${holding.hero_caption}</p>`
     : '';

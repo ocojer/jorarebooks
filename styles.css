@@ -637,10 +637,14 @@ picture { display: contents; }
       line-height: 1.5;
     }
 
-    /* ── Media frame — shared by the hero and every highlight image.
-       Landscape images fill the width naturally; portrait images scale
-       down and center within the same height cap instead of stretching
-       full-width and running very tall. */
+    /* ── Media frame — used for highlight images. Landscape images fill
+       the width naturally; portrait images scale down and center within
+       the same height cap instead of stretching full-width and running
+       very tall. Not used for the hero — see .story-hero-frame below,
+       which always fills the width instead of capping height, since a
+       height cap here would sometimes letterbox the hero with visible
+       background on the sides for images that aren't truly portrait,
+       just proportioned a bit taller than the cap allows. */
     .story-media-frame {
       width: 100%;
       max-height: 560px;
@@ -656,6 +660,23 @@ picture { display: contents; }
       max-width: 100%;
       max-height: 560px;
       width: auto;
+      height: auto;
+      display: block;
+    }
+
+    /* Hero image — always fills the full width at its natural aspect
+       ratio, no height cap and so no letterboxing. A genuinely tall
+       portrait hero will just run taller than usual rather than
+       shrinking to fit a cap, which is an acceptable trade for never
+       showing background padding on the sides. */
+    .story-hero-frame {
+      width: 100%;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .story-hero-frame img {
+      width: 100%;
       height: auto;
       display: block;
     }
