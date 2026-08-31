@@ -259,7 +259,7 @@ function cardActionsHtml(h) {
   const actions = [];
   if (h.pdf_url && h.pdf_url.trim()) {
     const pdfTitle = h.pdf_caption ? ` title="${h.pdf_caption}"` : '';
-    actions.push(`<a class="card-action" href="${h.pdf_url}" target="_blank" rel="noopener noreferrer"${pdfTitle}>View PDF</a>`);
+    actions.push(`<a class="card-action" href="${resolveLink(h.pdf_url)}" target="_blank" rel="noopener noreferrer"${pdfTitle}>View PDF</a>`);
   }
   if (h.video_url && h.video_url.trim()) {
     actions.push(`<a class="card-action" href="${h.video_url}" target="_blank" rel="noopener noreferrer">Video</a>`);
@@ -400,8 +400,9 @@ ${galleryItems.join('\n')}
     </div>`
     : '';
 
-  const pdfReminderHtml = (holding.pdf_url && holding.pdf_url.trim())
-    ? `<p class="story-pdf-reminder">Full description${holding.pdf_caption ? ' — ' + holding.pdf_caption : ''}. <a href="${holding.pdf_url}" target="_blank" rel="noopener noreferrer">View PDF</a></p>`
+  const pdfHref = resolveLink(holding.pdf_url);
+  const pdfReminderHtml = pdfHref
+    ? `<p class="story-pdf-reminder">Full description${holding.pdf_caption ? ' — ' + holding.pdf_caption : ''}. <a href="${pdfHref}" target="_blank" rel="noopener noreferrer">View PDF</a></p>`
     : '';
 
   // Everything that scrolls goes in one column — body, video, gallery, and
@@ -417,7 +418,7 @@ ${bodyHtml}
   // The PDF gets its own cover card beside the text, but only if there's
   // actually a cover image to show — otherwise "View PDF" in the actions
   // row below is enough, and the column just runs single-width.
-  const hasPdfCard = !!(holding.pdf_url && holding.pdf_url.trim() && holding.pdf_cover_image && holding.pdf_cover_image.trim());
+  const hasPdfCard = !!(pdfHref && holding.pdf_cover_image && holding.pdf_cover_image.trim());
   const pdfCaptionHtml = holding.pdf_caption
     ? `<span class="story-pdf-caption">${holding.pdf_caption}</span>`
     : '';
@@ -426,10 +427,10 @@ ${bodyHtml}
     : '';
   const pdfCardHtml = hasPdfCard
     ? `<aside class="story-pdf-card">
-        <a href="${holding.pdf_url}" target="_blank" rel="noopener noreferrer">
+        <a href="${pdfHref}" target="_blank" rel="noopener noreferrer">
           ${pdfCoverImgHtml}
         </a>
-        <a class="story-pdf-link" href="${holding.pdf_url}" target="_blank" rel="noopener noreferrer">View PDF ↓</a>
+        <a class="story-pdf-link" href="${pdfHref}" target="_blank" rel="noopener noreferrer">View PDF ↓</a>
         ${pdfCaptionHtml}
       </aside>`
     : '';
@@ -554,6 +555,19 @@ function downloadToBuffer(url) {
 // Keep only characters that are safe in a URL path segment.
 function safeFilename(name) {
   return (name || 'file').replace(/[^a-zA-Z0-9.\-_]/g, '-');
+}
+
+// ── A link field like pdf_url may hold either a full external URL
+//    (https://...) or a CMS-uploaded file living in the repo — which,
+//    like image fields, comes back as a bare filename with no leading
+//    slash. Resolving it here means the link works correctly whether
+//    it's rendered on the homepage (at "/") or a nested story page (at
+//    "/slug/"), instead of silently 404ing on nested pages only.
+function resolveLink(p) {
+  if (!p || !p.trim()) return '';
+  const trimmed = p.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
 }
 
 // ── Resize + convert one image source into a WebP + JPEG pair at a given
