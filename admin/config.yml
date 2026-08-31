@@ -88,15 +88,9 @@ collections:
         name: "title"
         widget: "string"
         hint: "Plain text. Wrap a book title in <em> and </em> to italicize it, e.g. <em>Harry Potter and the Philosopher's Stone</em>"
-      - label: "Contents (optional)"
-        name: "contents"
-        widget: "text"
-        required: false
-        hint: "Physical extent, shown beneath the title on the story page, e.g. \"2,868 manuscript pages in 23 volumes; with additional materials housed in 12 boxes.\" Can run to more than one paragraph — separate them with a blank line."
       - label: "Description"
         name: "description"
         widget: "text"
-        hint: "Shows as the card blurb on the homepage. On the story page (if there's a slug below), this also becomes the opening text next to the PDF — separate paragraphs with a blank line between them."
       - label: "Photo"
         name: "image"
         widget: "image"
@@ -107,21 +101,16 @@ collections:
         widget: "string"
         hint: "A short description of the photo, for accessibility and search engines."
         required: false
-      - label: "Hero caption (optional)"
-        name: "hero_caption"
-        widget: "string"
-        required: false
-        hint: "Shown under the hero image (or video, if set below) on the story page. A sentence or two is fine."
       - label: "Price or availability note"
         name: "price"
         widget: "string"
         default: "Inquire"
         hint: "Shown only if there's no PDF or video below — otherwise those replace it."
-      - label: "PDF"
+      - label: "PDF (optional)"
         name: "pdf_url"
-        widget: "file"
+        widget: "string"
         required: false
-        hint: "Upload a PDF (condition report, provenance, etc). If set, shows as \"View PDF\" instead of the price/inquire line."
+        hint: "Link to a PDF (condition report, provenance, etc). If set, shows as \"View PDF\" instead of the price/inquire line."
       - label: "PDF cover image (optional)"
         name: "pdf_cover_image"
         widget: "image"
@@ -136,7 +125,7 @@ collections:
         name: "video_url"
         widget: "string"
         required: false
-        hint: "Link to a video (e.g. YouTube). Shows as \"Video\" instead of the price/inquire line, and on the story page takes the hero spot in place of the photo."
+        hint: "Link to a video (e.g. YouTube). If set, shows as \"Video\" instead of the price/inquire line."
       - label: "Pull Quote (optional)"
         name: "pull_quote"
         widget: "string"
@@ -163,24 +152,18 @@ collections:
         widget: "string"
         required: false
         hint: "Gives this holding its own page, e.g. \"harry-potter\" makes jorarebooks.com/harry-potter/. Leave blank if it shouldn't have one yet. Use lowercase letters, numbers, and hyphens only — no spaces."
-      - label: "Highlights section label"
-        name: "highlights_label"
-        widget: "string"
-        required: false
-        default: "Highlights from the archive"
-        hint: "The heading shown above the highlights below — change it per holding if you want something other than the default, e.g. \"From the collection.\" Only shown if there's at least one highlight below."
-      - label: "Highlights"
+      - label: "Story page text"
         name: "story_body"
         widget: "list"
         required: false
-        hint: "Each block is one highlight — a distinct facet of the archive. Add a heading to start a new highlight (this is what puts a break above it); leave heading blank to continue the previous one. Typical shape per block: heading, image + a short caption describing it, then a longer paragraph or two of context. Within one block, fields always render in that fixed order (heading, image, caption, paragraph, quote) — to put a pull-quote somewhere else, like between two paragraphs, split it into extra blocks with the heading left blank: e.g. one block with the first paragraph, a second block with just the quote filled in, a third block with the rest of the paragraphs. They'll flow together as one highlight with no break between them, in whatever order you stack the blocks. Only used if a slug is set above."
+        hint: "Add blocks in order, top to bottom, in whatever mix the piece calls for. Each block can be a heading, a paragraph, a pull-quote, or an image — fill in only the one you want for that block, leave the others blank. Only used if a slug is set above."
         fields:
-          - {label: "Heading", name: "heading", widget: "string", required: false, hint: "Names this highlight, e.g. \"Casting materials\" or \"Correspondence.\" Leave blank to add more to the previous highlight instead of starting a new one."}
-          - {label: "Image", name: "image", widget: "image", required: false}
-          - {label: "Image alt text", name: "image_alt", widget: "string", required: false}
-          - {label: "Image caption", name: "image_caption", widget: "string", required: false, hint: "A short, factual line describing the image itself — what it is. Save the fuller story for the paragraph below."}
-          - {label: "Paragraph", name: "text", widget: "text", required: false, hint: "The context or story behind this highlight. Can run to more than one paragraph — separate them with a blank line."}
-          - {label: "Pull-quote (optional)", name: "quote", widget: "text", required: false, hint: "A short standout line, shown larger and set apart. Include attribution in the text itself if needed. Renders after the paragraph above — use a separate block (heading left blank) to place it somewhere else, like between two paragraphs."}
+          - {label: "Heading (optional)", name: "heading", widget: "string", required: false, hint: "A short section title, e.g. \"The Collaborators\""}
+          - {label: "Paragraph (optional)", name: "text", widget: "text", required: false}
+          - {label: "Pull-quote (optional)", name: "quote", widget: "text", required: false, hint: "A short standout line, shown larger and set apart. Include attribution in the text itself if needed."}
+          - {label: "Image (optional)", name: "image", widget: "image", required: false, hint: "Drops a photo in at this point in the story, right where it's relevant."}
+          - {label: "Image alt text (optional)", name: "image_alt", widget: "string", required: false}
+          - {label: "Image caption (optional)", name: "image_caption", widget: "string", required: false}
       - label: "Additional photos (optional)"
         name: "gallery"
         widget: "list"
