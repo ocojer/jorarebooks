@@ -349,40 +349,114 @@ function toYouTubeEmbedUrl(url) {
 }
 
 // ── Build one holding's story page ───────────────────────────
+// Splits a text field on blank lines into trimmed paragraphs — shared by
+// the story intro (from `description`) and facet body text (from
+// `story_body[].text`), both of which may run to more than one paragraph.
+function splitParagraphs(text) {
+  return (text || '').split(/\n+/).map(p => p.trim()).filter(Boolean);
+}
+
 async function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml) {
   const plainTitle = holding.title.replace(/<[^>]+>/g, '');
   const description = (holding.description || '').replace(/<[^>]+>/g, '').slice(0, 160);
   const canonicalUrl = `https://www.jorarebooks.com/${holding.slug}/`;
 
-  const heroImageHtml = holding.image
-    ? await cmsImageHtml(holding.image, holding.alt || '', 'large')
+  // ── Intro + PDF row — description becomes the opening text, sitting
+  //    beside the PDF card. This is deliberately just the two of them:
+  //    the PDF is meant to read as the primary item on the page, not one
+  //    of several things competing for attention in a long scroll. ──────
+  const introParas = splitParagraphs(holding.description);
+  const introTextHtml = introParas.length
+    ? `<div class="story-intro-text">
+${introParas.map(p => `        <p>${p}</p>`).join('\n')}
+      </div>`
     : '';
 
+  const pdfHref = resolveLink(holding.pdf_url);
+  const hasPdf = !!pdfHref;
+  const pdfCoverImgHtml = hasPdf && holding.pdf_cover_image && holding.pdf_cover_image.trim()
+    ? await cmsImageHtml(holding.pdf_cover_image, 'Cover of the PDF', 'large')
+    : '';
+  const pdfCaptionHtml = holding.pdf_caption
+    ? `<span class="story-pdf-caption">${holding.pdf_caption}</span>`
+    : '';
+  const pdfCardHtml = hasPdf
+    ? `<aside class="story-pdf-card">
+        <a href="${pdfHref}" target="_blank" rel="noopener noreferrer">
+          ${pdfCoverImgHtml || '<div class="story-pdf-card-placeholder">PDF</div>'}
+        </a>
+        <a class="story-pdf-link" href="${pdfHref}" target="_blank" rel="noopener noreferrer">View PDF ↓</a>
+        ${pdfCaptionHtml}
+      </aside>`
+    : '';
+
+  const introRowHtml = (introTextHtml || pdfCardHtml)
+    ? `<div class="story-intro-row${hasPdf ? '' : ' no-pdf'}">
+      ${introTextHtml}
+      ${pdfCardHtml}
+    </div>`
+    : '';
+
+  // ── Hero — video takes the hero spot in place of the photo when set,
+  //    since a video is the more natural "lead" moment when there is one.
+  //    Either way it can carry a caption, unlike the old top-of-page hero. ──
+  const heroEmbedUrl = toYouTubeEmbedUrl(holding.video_url);
+  const heroImgHtml = (!heroEmbedUrl && holding.image)
+    ? await cmsImageHtml(holding.image, holding.alt || '', 'large')
+    : '';
+  const heroMediaHtml = heroEmbedUrl
+    ? `<div class="story-video-frame">
+        <iframe src="${heroEmbedUrl}" title="${plainTitle}" allowfullscreen></iframe>
+      </div>`
+    : (heroImgHtml ? `<div class="story-media-frame">${heroImgHtml}</div>` : '');
+  const heroCaptionHtml = holding.hero_caption
+    ? `<p class="story-hero-caption">${holding.hero_caption}</p>`
+    : '';
+  const heroBlockHtml = heroMediaHtml
+    ? `<div class="story-hero-block">
+      ${heroMediaHtml}
+      ${heroCaptionHtml}
+    </div>`
+    : '';
+
+  // ── Highlights — each story_body block is one facet of the archive.
+  //    A heading starts a new highlight (and gets a divider above it,
+  //    except the very first one, since the section label already marks
+  //    that boundary); blocks without a heading continue the previous
+  //    highlight. Order within a block is deliberate: name it, show it,
+  //    caption it plainly, then explain it — caption stays factual and
+  //    short, the real story goes in the paragraph below. ──────────────
   const blocks = Array.isArray(holding.story_body) ? holding.story_body : [];
-  const bodyParts = await Promise.all(blocks.map(async b => {
+  const facetParts = await Promise.all(blocks.map(async (b, i) => {
     // Backward-compatible: older entries may just be plain strings.
     const block = typeof b === 'string' ? { text: b } : b;
     const parts = [];
+    if (block.heading && i > 0) parts.push(`      <hr class="story-facet-divider">`);
     if (block.heading) parts.push(`      <h2 class="story-subhead">${block.heading}</h2>`);
-    if (block.text) parts.push(`      <p>${block.text}</p>`);
-    if (block.quote) parts.push(`      <blockquote class="story-quote">${block.quote}</blockquote>`);
     if (block.image) {
       const imgHtml = await cmsImageHtml(block.image, block.image_alt || '', 'large');
-      parts.push(`      <figure class="story-inline-image">
-        ${imgHtml}
-        ${block.image_caption ? `<figcaption class="story-gallery-caption">${block.image_caption}</figcaption>` : ''}
-      </figure>`);
+      parts.push(`      <div class="story-media-frame">${imgHtml}</div>`);
+      if (block.image_caption) {
+        parts.push(`      <p class="story-facet-caption">${block.image_caption}</p>`);
+      }
     }
+    const textParas = splitParagraphs(block.text);
+    if (textParas.length) {
+      parts.push(`      <div class="story-facet-text">
+${textParas.map(p => `        <p>${p}</p>`).join('\n')}
+      </div>`);
+    }
+    if (block.quote) parts.push(`      <blockquote class="story-quote">${block.quote}</blockquote>`);
     return parts.join('\n');
   }));
-  const bodyHtml = bodyParts.filter(Boolean).join('\n');
-
-  const embedUrl = toYouTubeEmbedUrl(holding.video_url);
-  const videoHtml = embedUrl
-    ? `<div class="story-video">
-      <div class="story-video-frame">
-        <iframe src="${embedUrl}" title="${plainTitle}" allowfullscreen></iframe>
+  const highlightsInnerHtml = facetParts.filter(Boolean).join('\n');
+  const highlightsHtml = highlightsInnerHtml
+    ? `<div class="story-highlights">
+      <div class="story-highlights-intro">
+        <span class="section-label">Highlights from the archive</span>
       </div>
+      <hr class="divider" style="margin-top:0;">
+${highlightsInnerHtml}
     </div>`
     : '';
 
@@ -400,50 +474,16 @@ ${galleryItems.join('\n')}
     </div>`
     : '';
 
-  const pdfHref = resolveLink(holding.pdf_url);
-  const pdfReminderHtml = pdfHref
+  const pdfReminderHtml = hasPdf
     ? `<p class="story-pdf-reminder">Full description${holding.pdf_caption ? ' — ' + holding.pdf_caption : ''}. <a href="${pdfHref}" target="_blank" rel="noopener noreferrer">View PDF</a></p>`
     : '';
 
-  // Everything that scrolls goes in one column — body, video, gallery, and
-  // the closing PDF reminder — so that when the PDF card sits alongside it,
-  // its sticky position spans the whole read, not just the opening text.
-  const mainContentHtml = `<div class="story-body">
-${bodyHtml}
-      </div>
-      ${videoHtml}
+  const layoutHtml = `<div class="story-content">
+      ${introRowHtml}
+      ${heroBlockHtml}
+      ${highlightsHtml}
       ${galleryHtml}
-      ${pdfReminderHtml}`;
-
-  // The PDF gets its own cover card beside the text, but only if there's
-  // actually a cover image to show — otherwise "View PDF" in the actions
-  // row below is enough, and the column just runs single-width.
-  const hasPdfCard = !!(pdfHref && holding.pdf_cover_image && holding.pdf_cover_image.trim());
-  const pdfCaptionHtml = holding.pdf_caption
-    ? `<span class="story-pdf-caption">${holding.pdf_caption}</span>`
-    : '';
-  const pdfCoverImgHtml = hasPdfCard
-    ? await cmsImageHtml(holding.pdf_cover_image, 'Cover of the PDF', 'thumb')
-    : '';
-  const pdfCardHtml = hasPdfCard
-    ? `<aside class="story-pdf-card">
-        <a href="${pdfHref}" target="_blank" rel="noopener noreferrer">
-          ${pdfCoverImgHtml}
-        </a>
-        <a class="story-pdf-link" href="${pdfHref}" target="_blank" rel="noopener noreferrer">View PDF ↓</a>
-        ${pdfCaptionHtml}
-      </aside>`
-    : '';
-
-  const layoutHtml = hasPdfCard
-    ? `<div class="story-layout">
-      <div class="story-main">
-        ${mainContentHtml}
-      </div>
-      ${pdfCardHtml}
-    </div>`
-    : `<div class="story-main">
-      ${mainContentHtml}
+      ${pdfReminderHtml}
     </div>`;
 
   const actionsHtml = cardActionsHtml(holding);
@@ -464,7 +504,7 @@ ${bodyHtml}
   let output = fs.readFileSync(STORY_TEMPLATE, 'utf8');
 
   const required = [
-    '<!-- MASTHEAD -->', '<!-- FOOTER -->', '<!-- STORY_HERO_IMAGE -->',
+    '<!-- MASTHEAD -->', '<!-- FOOTER -->',
     '<!-- STORY_TITLE -->', '<!-- STORY_LAYOUT -->',
     '<!-- STORY_ACTIONS -->', '<!-- STORY_PREV -->', '<!-- STORY_NEXT -->'
   ];
@@ -480,7 +520,6 @@ ${bodyHtml}
     .replace('<!-- PAGE_DESCRIPTION -->', description)
     .replace('<!-- CANONICAL_URL -->', canonicalUrl)
     .replace('<!-- MASTHEAD -->', mastheadHtml)
-    .replace('<!-- STORY_HERO_IMAGE -->', heroImageHtml)
     .replace('<!-- STORY_TITLE -->', holding.title)
     .replace('<!-- STORY_LAYOUT -->', layoutHtml)
     .replace('<!-- STORY_ACTIONS -->', actionsHtml)

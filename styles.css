@@ -525,29 +525,6 @@ picture { display: contents; }
 
     /* ── STORY PAGES ── */
 
-    /* Story hero runs narrower than the homepage's full-bleed one — sized
-       to feel proportionate to the reading column below it, not the full
-       viewport. Now sits inside .page (below the title), so it inherits
-       that container's width/gutter rather than setting its own. */
-    .story-hero-figure {
-      margin: 0 0 clamp(2.5rem, 5vw, 3.5rem);
-    }
-
-    .story-hero {
-      width: 100%;
-      height: clamp(220px, 32vw, 420px);
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-
-    .story-hero img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 30%;
-      display: block;
-    }
-
     .story-back {
       display: inline-block;
       font-size: 0.68rem;
@@ -571,35 +548,175 @@ picture { display: contents; }
       max-width: 800px;
     }
 
-    /* story-main holds everything that scrolls — body text, video,
-       gallery, the closing PDF reminder — all at one consistent width.
-       When a PDF card sits beside it (.story-layout), story-main becomes
-       the grid's left column instead and this max-width is redundant but
-       harmless. */
-    .story-main {
-      max-width: 700px;
+    /* Everything below the title — intro+PDF, hero, highlights, gallery,
+       PDF reminder — lives in one consistent column width. */
+    .story-content {
+      max-width: 780px;
+    }
+
+    /* ── Intro + PDF row — the opening text (from Description) sits
+       beside the PDF card. Deliberately just these two: the PDF is meant
+       to read as the primary item on the page, not one of several things
+       competing for attention further down. */
+    .story-intro-row {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: clamp(2rem, 5vw, 3rem);
+      align-items: start;
+      margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+    }
+
+    .story-intro-row.no-pdf {
+      grid-template-columns: 1fr;
+    }
+
+    .story-intro-text {
       font-size: 1rem;
       color: var(--mid);
       line-height: 1.85;
     }
 
-    .story-body p {
-      margin-bottom: 1.25rem;
+    .story-intro-text p { margin-bottom: 1.25rem; }
+    .story-intro-text p:last-child { margin-bottom: 0; }
+
+    /* No longer sticky/full-page — it only ever sits beside the short
+       intro now, so pinning it in place has nothing left to do. */
+    .story-pdf-card a { display: block; }
+
+    .story-pdf-card img {
+      width: 100%;
+      display: block;
+      border: 1px solid var(--border);
     }
 
-    .story-body p:last-child { margin-bottom: 0; }
-
-    .story-subhead {
-      font-family: var(--font-body);
+    .story-pdf-card-placeholder {
+      width: 100%;
+      aspect-ratio: 3/4;
+      border: 1px solid var(--border);
+      background: #faf8f3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 0.65rem;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--light);
-      font-weight: 500;
-      margin: clamp(2.5rem, 5vw, 3.5rem) 0 1.25rem;
     }
 
-    .story-body > .story-subhead:first-child { margin-top: 0; }
+    .story-pdf-link {
+      display: block;
+      text-align: center;
+      margin-top: 0.75rem;
+      font-size: 0.63rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--light);
+      transition: color 0.2s;
+    }
+
+    .story-pdf-link:hover { color: var(--ink); }
+
+    .story-pdf-caption {
+      display: block;
+      text-align: center;
+      margin-top: 0.5rem;
+      font-size: 0.62rem;
+      color: var(--light);
+      line-height: 1.5;
+    }
+
+    /* ── Media frame — shared by the hero and every highlight image.
+       Landscape images fill the width naturally; portrait images scale
+       down and center within the same height cap instead of stretching
+       full-width and running very tall. */
+    .story-media-frame {
+      width: 100%;
+      max-height: 560px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #faf8f3;
+    }
+
+    .story-media-frame img {
+      max-width: 100%;
+      max-height: 560px;
+      width: auto;
+      height: auto;
+      display: block;
+    }
+
+    /* ── Hero — image or video (video takes this spot when set), with
+       room for a caption either way. */
+    .story-hero-block {
+      margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+    }
+
+    .story-hero-caption {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 0.95rem;
+      color: var(--mid);
+      line-height: 1.65;
+      margin-top: 0.85rem;
+    }
+
+    .story-video-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #f0ede8;
+      border: 1px solid var(--border);
+    }
+
+    .story-video-frame iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* ── Highlights — each is a facet of the archive: a subtle header,
+       the piece itself, a short factual caption, then the fuller story. */
+    .story-highlights-intro {
+      margin-bottom: clamp(2rem, 4vw, 2.5rem);
+    }
+
+    .story-subhead {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 1.1rem;
+      color: var(--ink);
+      margin: 0 0 0.9rem;
+    }
+
+    .story-facet-caption {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 0.92rem;
+      color: var(--mid);
+      line-height: 1.6;
+      margin-top: 0.85rem;
+    }
+
+    .story-facet-text {
+      font-size: 0.94rem;
+      color: var(--mid);
+      line-height: 1.8;
+      margin-top: 0.9rem;
+    }
+
+    .story-facet-text p { margin-bottom: 1rem; }
+    .story-facet-text p:last-child { margin-bottom: 0; }
+
+    .story-facet-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: clamp(2.5rem, 5vw, 3.25rem) 0;
+    }
 
     .story-quote {
       font-family: var(--font-display);
@@ -610,20 +727,6 @@ picture { display: contents; }
       border-left: 2px solid var(--border);
       padding-left: 1.5rem;
       margin: 1.75rem 0;
-    }
-
-    .story-inline-image {
-      margin: 1.75rem 0;
-    }
-
-    .story-inline-image img {
-      width: 100%;
-      display: block;
-      border: 1px solid var(--border);
-    }
-
-    .story-video {
-      margin: clamp(2rem, 5vw, 3rem) 0;
     }
 
     .story-gallery {
@@ -658,76 +761,9 @@ picture { display: contents; }
       padding-bottom: 1px;
     }
 
-    /* The grid itself is the sticky positioning context — since story-main
-       (body + video + gallery + reminder) is the tallest thing in the row,
-       the PDF card stays pinned for the full length of that column, not
-       just past the opening paragraphs. */
-    .story-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 700px) 240px;
-      gap: clamp(2rem, 5vw, 3.5rem);
-      align-items: start;
-    }
-
-    .story-layout .story-main {
-      max-width: none;
-    }
-
-    .story-pdf-card {
-      position: sticky;
-      top: 2rem;
-      margin-top: 2rem;
-    }
-
-    .story-pdf-card a { display: block; }
-
-    .story-pdf-card img {
-      width: 100%;
-      display: block;
-      border: 1px solid var(--border);
-    }
-
-    .story-pdf-link {
-      display: block;
-      text-align: center;
-      margin-top: 0.75rem;
-      font-size: 0.63rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--light);
-      transition: color 0.2s;
-    }
-
-    .story-pdf-link:hover { color: var(--ink); }
-
-    .story-pdf-caption {
-      display: block;
-      text-align: center;
-      margin-top: 0.5rem;
-      font-size: 0.62rem;
-      color: var(--light);
-      line-height: 1.5;
-    }
-
-    @media (max-width: 900px) {
-      .story-layout { grid-template-columns: 1fr; }
-      .story-pdf-card { position: static; max-width: 240px; margin-bottom: 1rem; }
-    }
-
-    .story-video-frame {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16/9;
-      background: #f0ede8;
-      border: 1px solid var(--border);
-    }
-
-    .story-video-frame iframe {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: 0;
+    @media (max-width: 700px) {
+      .story-intro-row { grid-template-columns: 1fr; }
+      .story-pdf-card { max-width: 280px; }
     }
 
     .story-actions {
