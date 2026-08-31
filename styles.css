@@ -544,18 +544,32 @@ picture { display: contents; }
       font-weight: 400;
       line-height: 1.2;
       color: var(--ink);
-      margin: 0 auto clamp(1.75rem, 4vw, 2.5rem);
+      margin: 0 auto clamp(0.85rem, 2vw, 1.1rem);
       max-width: 900px;
     }
 
-    /* Beneath the title — a short factual line on physical extent, e.g.
-       "2,868 manuscript pages in 23 volumes; with additional materials
-       housed in 12 boxes." Plain, not italic — bibliographic, not voice. */
+    /* Beneath the title — physical extent, e.g. "2,868 manuscript pages
+       in 23 volumes; with additional materials housed in 12 boxes."
+       Sits close to the title, separated by a thin rule rather than
+       open space, since it reads as part of the same header block —
+       not italic, this is bibliographic, not voice. */
     .story-contents {
       max-width: 900px;
       margin: 0 auto clamp(2rem, 4vw, 2.5rem);
+      padding-top: 0.9rem;
+      border-top: 1px solid var(--border);
       font-size: 0.85rem;
       color: var(--light);
+    }
+
+    .story-contents p { margin-bottom: 0.5rem; }
+    .story-contents p:last-child { margin-bottom: 0; }
+
+    /* Restores the title's usual breathing room on holdings with no
+       Contents value, where .story-content follows the title directly
+       instead of .story-contents sitting between them. */
+    .story-title + .story-content {
+      margin-top: clamp(1.75rem, 4vw, 2.5rem);
     }
 
     /* Everything below the title — intro+PDF, hero, highlights, gallery,
@@ -694,6 +708,17 @@ picture { display: contents; }
        the piece itself, a short factual caption, then the fuller story. */
     .story-highlights-intro {
       margin-bottom: clamp(2rem, 4vw, 2.5rem);
+    }
+
+    /* Deliberately its own class, not .section-label (used elsewhere for
+       quiet eyebrow labels) — this marks a real transition on the page,
+       from the editorial opening into the highlights themselves, and
+       needs to read with some weight rather than as a faint aside. */
+    .story-highlights-label {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 1.35rem;
+      color: var(--ink);
     }
 
     .story-subhead {

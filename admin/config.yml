@@ -90,9 +90,9 @@ collections:
         hint: "Plain text. Wrap a book title in <em> and </em> to italicize it, e.g. <em>Harry Potter and the Philosopher's Stone</em>"
       - label: "Contents (optional)"
         name: "contents"
-        widget: "string"
+        widget: "text"
         required: false
-        hint: "Physical extent, shown beneath the title on the story page, e.g. \"2,868 manuscript pages in 23 volumes; with additional materials housed in 12 boxes.\""
+        hint: "Physical extent, shown beneath the title on the story page, e.g. \"2,868 manuscript pages in 23 volumes; with additional materials housed in 12 boxes.\" Can run to more than one paragraph — separate them with a blank line."
       - label: "Description"
         name: "description"
         widget: "text"
@@ -163,7 +163,13 @@ collections:
         widget: "string"
         required: false
         hint: "Gives this holding its own page, e.g. \"harry-potter\" makes jorarebooks.com/harry-potter/. Leave blank if it shouldn't have one yet. Use lowercase letters, numbers, and hyphens only — no spaces."
-      - label: "Highlights from the archive"
+      - label: "Highlights section label"
+        name: "highlights_label"
+        widget: "string"
+        required: false
+        default: "Highlights from the archive"
+        hint: "The heading shown above the highlights below — change it per holding if you want something other than the default, e.g. \"From the collection.\" Only shown if there's at least one highlight below."
+      - label: "Highlights"
         name: "story_body"
         widget: "list"
         required: false

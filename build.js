@@ -361,8 +361,11 @@ async function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml) {
   const description = (holding.description || '').replace(/<[^>]+>/g, '').slice(0, 160);
   const canonicalUrl = `https://www.jorarebooks.com/${holding.slug}/`;
 
-  const contentsHtml = holding.contents && holding.contents.trim()
-    ? `<p class="story-contents">${holding.contents}</p>`
+  const contentsParas = splitParagraphs(holding.contents);
+  const contentsHtml = contentsParas.length
+    ? `<div class="story-contents">
+${contentsParas.map(p => `        <p>${p}</p>`).join('\n')}
+      </div>`
     : '';
 
   // ── Intro + PDF row — description becomes the opening text, sitting
@@ -454,10 +457,12 @@ ${textParas.map(p => `        <p>${p}</p>`).join('\n')}
     return parts.join('\n');
   }));
   const highlightsInnerHtml = facetParts.filter(Boolean).join('\n');
+  const highlightsLabel = (holding.highlights_label && holding.highlights_label.trim())
+    || 'Highlights from the archive';
   const highlightsHtml = highlightsInnerHtml
     ? `<div class="story-highlights">
       <div class="story-highlights-intro">
-        <span class="section-label">Highlights from the archive</span>
+        <span class="story-highlights-label">${highlightsLabel}</span>
       </div>
       <hr class="divider" style="margin-top:0;">
 ${highlightsInnerHtml}
