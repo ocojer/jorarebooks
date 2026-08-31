@@ -361,6 +361,10 @@ async function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml) {
   const description = (holding.description || '').replace(/<[^>]+>/g, '').slice(0, 160);
   const canonicalUrl = `https://www.jorarebooks.com/${holding.slug}/`;
 
+  const contentsHtml = holding.contents && holding.contents.trim()
+    ? `<p class="story-contents">${holding.contents}</p>`
+    : '';
+
   // ── Intro + PDF row — description becomes the opening text, sitting
   //    beside the PDF card. This is deliberately just the two of them:
   //    the PDF is meant to read as the primary item on the page, not one
@@ -505,7 +509,7 @@ ${galleryItems.join('\n')}
 
   const required = [
     '<!-- MASTHEAD -->', '<!-- FOOTER -->',
-    '<!-- STORY_TITLE -->', '<!-- STORY_LAYOUT -->',
+    '<!-- STORY_TITLE -->', '<!-- STORY_CONTENTS -->', '<!-- STORY_LAYOUT -->',
     '<!-- STORY_ACTIONS -->', '<!-- STORY_PREV -->', '<!-- STORY_NEXT -->'
   ];
   for (const marker of required) {
@@ -521,6 +525,7 @@ ${galleryItems.join('\n')}
     .replace('<!-- CANONICAL_URL -->', canonicalUrl)
     .replace('<!-- MASTHEAD -->', mastheadHtml)
     .replace('<!-- STORY_TITLE -->', holding.title)
+    .replace('<!-- STORY_CONTENTS -->', contentsHtml)
     .replace('<!-- STORY_LAYOUT -->', layoutHtml)
     .replace('<!-- STORY_ACTIONS -->', actionsHtml)
     .replace('<!-- STORY_PREV -->', prevHtml)

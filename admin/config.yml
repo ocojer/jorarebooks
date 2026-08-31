@@ -88,6 +88,11 @@ collections:
         name: "title"
         widget: "string"
         hint: "Plain text. Wrap a book title in <em> and </em> to italicize it, e.g. <em>Harry Potter and the Philosopher's Stone</em>"
+      - label: "Contents (optional)"
+        name: "contents"
+        widget: "string"
+        required: false
+        hint: "Physical extent, shown beneath the title on the story page, e.g. \"2,868 manuscript pages in 23 volumes; with additional materials housed in 12 boxes.\""
       - label: "Description"
         name: "description"
         widget: "text"
@@ -162,14 +167,14 @@ collections:
         name: "story_body"
         widget: "list"
         required: false
-        hint: "Each block is one highlight — a distinct facet of the archive. Add a heading to start a new highlight (this is what puts a break above it); leave heading blank to continue the previous one. Typical shape per block: heading, image + a short caption describing it, then a longer paragraph or two of context. Only used if a slug is set above."
+        hint: "Each block is one highlight — a distinct facet of the archive. Add a heading to start a new highlight (this is what puts a break above it); leave heading blank to continue the previous one. Typical shape per block: heading, image + a short caption describing it, then a longer paragraph or two of context. Within one block, fields always render in that fixed order (heading, image, caption, paragraph, quote) — to put a pull-quote somewhere else, like between two paragraphs, split it into extra blocks with the heading left blank: e.g. one block with the first paragraph, a second block with just the quote filled in, a third block with the rest of the paragraphs. They'll flow together as one highlight with no break between them, in whatever order you stack the blocks. Only used if a slug is set above."
         fields:
           - {label: "Heading", name: "heading", widget: "string", required: false, hint: "Names this highlight, e.g. \"Casting materials\" or \"Correspondence.\" Leave blank to add more to the previous highlight instead of starting a new one."}
           - {label: "Image", name: "image", widget: "image", required: false}
           - {label: "Image alt text", name: "image_alt", widget: "string", required: false}
           - {label: "Image caption", name: "image_caption", widget: "string", required: false, hint: "A short, factual line describing the image itself — what it is. Save the fuller story for the paragraph below."}
           - {label: "Paragraph", name: "text", widget: "text", required: false, hint: "The context or story behind this highlight. Can run to more than one paragraph — separate them with a blank line."}
-          - {label: "Pull-quote (optional)", name: "quote", widget: "text", required: false, hint: "A short standout line, shown larger and set apart. Include attribution in the text itself if needed."}
+          - {label: "Pull-quote (optional)", name: "quote", widget: "text", required: false, hint: "A short standout line, shown larger and set apart. Include attribution in the text itself if needed. Renders after the paragraph above — use a separate block (heading left blank) to place it somewhere else, like between two paragraphs."}
       - label: "Additional photos (optional)"
         name: "gallery"
         widget: "list"

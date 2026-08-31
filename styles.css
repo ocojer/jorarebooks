@@ -544,14 +544,25 @@ picture { display: contents; }
       font-weight: 400;
       line-height: 1.2;
       color: var(--ink);
-      margin-bottom: clamp(1.75rem, 4vw, 2.5rem);
-      max-width: 800px;
+      margin: 0 auto clamp(1.75rem, 4vw, 2.5rem);
+      max-width: 900px;
+    }
+
+    /* Beneath the title — a short factual line on physical extent, e.g.
+       "2,868 manuscript pages in 23 volumes; with additional materials
+       housed in 12 boxes." Plain, not italic — bibliographic, not voice. */
+    .story-contents {
+      max-width: 900px;
+      margin: 0 auto clamp(2rem, 4vw, 2.5rem);
+      font-size: 0.85rem;
+      color: var(--light);
     }
 
     /* Everything below the title — intro+PDF, hero, highlights, gallery,
-       PDF reminder — lives in one consistent column width. */
+       PDF reminder — lives in one consistent, centered column width. */
     .story-content {
-      max-width: 780px;
+      max-width: 900px;
+      margin: 0 auto;
     }
 
     /* ── Intro + PDF row — the opening text (from Description) sits
@@ -767,9 +778,9 @@ picture { display: contents; }
     }
 
     .story-actions {
-      max-width: 700px;
+      max-width: 900px;
+      margin: clamp(2rem, 5vw, 3rem) auto 0;
       padding-top: clamp(2rem, 5vw, 3rem);
-      margin-top: clamp(2rem, 5vw, 3rem);
       border-top: 1px solid var(--border);
       font-size: 0.65rem;
       letter-spacing: 0.08em;
@@ -780,8 +791,8 @@ picture { display: contents; }
     }
 
     .story-nav {
-      max-width: 700px;
-      margin-top: clamp(2.5rem, 6vw, 4rem);
+      max-width: 900px;
+      margin: clamp(2.5rem, 6vw, 4rem) auto 0;
       padding-top: 1.5rem;
       border-top: 1px solid var(--border);
       display: flex;
