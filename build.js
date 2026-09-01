@@ -185,7 +185,11 @@ function renderIntro(data) {
   return [paraHtml, signoffHtml].filter(Boolean).join('\n');
 }
 
-function renderComingSoon() {
+// ── Render the Further Holdings / Coming Soon block. When a photo is
+//    set, it renders text on the left and a portrait photo on the right
+//    (mirroring the podcast section's photo-left/text-right layout);
+//    otherwise the text renders exactly as it always has, full width. ──
+async function renderComingSoon() {
   if (!fs.existsSync(COMING_SOON_FILE)) {
     console.error(`Coming-soon content file not found at ${COMING_SOON_FILE}`);
     return '';
@@ -199,7 +203,26 @@ function renderComingSoon() {
   }
   const note = data.note ? `      <p>${data.note}</p>` : '';
   const comingSoonText = data.coming_soon_text ? `      <p>${data.coming_soon_text}</p>` : '';
-  return [note, comingSoonText].filter(Boolean).join('\n');
+  const textHtml = [note, comingSoonText].filter(Boolean).join('\n');
+
+  if (!data.image) {
+    return textHtml;
+  }
+
+  const imgHtml = await cmsImageHtml(data.image, data.image_alt || '', 'large');
+  const captionHtml = data.image_caption
+    ? `<p class="story-hero-caption">${data.image_caption}</p>`
+    : '';
+
+  return `<div class="coming-soon-with-photo">
+      <div class="coming-soon-text-col">
+${textHtml}
+      </div>
+      <div class="coming-soon-photo">
+        ${imgHtml}
+        ${captionHtml}
+      </div>
+    </div>`;
 }
 
 // ── Build stacked wide sections from content/sections/*.json ──
@@ -1253,7 +1276,7 @@ async function build() {
   const sectionsHtml = await renderSections();
 
   console.log('Rendering coming-soon text...');
-  const comingSoonHtml = renderComingSoon();
+  const comingSoonHtml = await renderComingSoon();
 
   console.log('Fetching RSS feed...');
 

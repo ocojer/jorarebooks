@@ -269,6 +269,37 @@ picture { display: contents; }
     .coming-soon p { margin-bottom: 0.5rem; }
     .coming-soon p:last-child { margin-bottom: 0; }
 
+    .coming-soon-with-photo {
+      display: flex;
+      gap: 2.5rem;
+      align-items: center;
+    }
+
+    .coming-soon-text-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .coming-soon-photo {
+      flex: 0 0 260px;
+    }
+
+    .coming-soon-photo img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    @media (max-width: 600px) {
+      .coming-soon-with-photo {
+        flex-direction: column;
+      }
+      .coming-soon-photo {
+        flex: 1 1 auto;
+        width: 100%;
+      }
+    }
+
     /* ── DIVIDER ── */
     hr.divider {
       border: none;

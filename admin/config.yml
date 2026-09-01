@@ -46,6 +46,20 @@ collections:
             name: "coming_soon_text"
             widget: "text"
             hint: "Wrap any phrase in <strong> and </strong> to bold it, e.g. <strong>An archive documenting...</strong>"
+          - label: "Photo (optional)"
+            name: "image"
+            widget: "image"
+            required: false
+            hint: "A portrait-oriented photo for one of the upcoming items — shown on the right, text on the left. Leave blank to show the text at full width with no photo."
+          - label: "Photo alt text (optional)"
+            name: "image_alt"
+            widget: "string"
+            required: false
+          - label: "Photo caption (optional)"
+            name: "image_caption"
+            widget: "string"
+            required: false
+            hint: "A short caption under the photo — keep it teasing rather than fully explanatory if the piece isn't ready to be named yet."
 
       - name: "site_info"
         label: "Contact &amp; Site Info"
