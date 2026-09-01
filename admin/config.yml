@@ -23,6 +23,16 @@ collections:
             widget: "string"
             required: false
             hint: "A short description of the photo, for accessibility and search engines."
+          - label: "Hero caption (optional)"
+            name: "hero_caption"
+            widget: "string"
+            required: false
+            hint: "A short line shown over the bottom of the hero photo, e.g. \"Earliest known printing of Harry Potter, 1997\". Leave blank to show the photo with no caption."
+          - label: "Hero link (optional)"
+            name: "hero_link"
+            widget: "string"
+            required: false
+            hint: "Where the hero photo goes when clicked — a story page, shop item, or any URL. As the hero photo changes over time, update this to match whatever it's currently showing. Leave blank if it shouldn't be clickable."
           - label: "Intro paragraphs"
             name: "intro_paragraphs"
             widget: "list"
