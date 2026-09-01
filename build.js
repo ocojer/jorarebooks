@@ -215,7 +215,7 @@ async function renderComingSoon() {
     console.error(`Invalid JSON in ${COMING_SOON_FILE}: ${e.message}`);
     return '';
   }
-  const note = data.note ? `      <p>${data.note}</p>` : '';
+  const note = data.note ? `      <p class="coming-soon-headline">${data.note}</p>` : '';
   const comingSoonText = data.coming_soon_text ? `      <p>${data.coming_soon_text}</p>` : '';
   const textHtml = [note, comingSoonText].filter(Boolean).join('\n');
 
