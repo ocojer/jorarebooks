@@ -282,6 +282,13 @@ picture { display: contents; }
 
     .coming-soon-photo {
       flex: 0 0 260px;
+      max-width: 260px;
+      overflow: hidden;
+    }
+
+    .coming-soon-photo picture {
+      display: block;
+      width: 100%;
     }
 
     .coming-soon-photo img {
@@ -357,6 +364,13 @@ picture { display: contents; }
 
     .latest-episode-photo {
       flex: 0 0 340px;
+      max-width: 340px;
+      overflow: hidden;
+    }
+
+    .latest-episode-photo picture {
+      display: block;
+      width: 100%;
     }
 
     .latest-episode-photo img {
