@@ -273,7 +273,10 @@ collections:
               - {label: "Image alt text (optional)", name: "image_alt", widget: "string", required: false}
               - {label: "Image caption (optional)", name: "image_caption", widget: "string", required: false, hint: "A short, factual line describing the image itself."}
               - {label: "Video URL (optional)", name: "video", widget: "string", required: false, hint: "A YouTube link. Drops in an embedded video player at this point in the page."}
+              - {label: "Video cover image (optional)", name: "video_cover_image", widget: "image", required: false, hint: "Shown in place of YouTube's own thumbnail — visitors click it to play. Leave blank to use YouTube's default thumbnail instead."}
+              - {label: "Video cover image alt text (optional)", name: "video_cover_alt", widget: "string", required: false}
               - {label: "Video caption (optional)", name: "video_caption", widget: "string", required: false}
+              - {label: "Video description (optional)", name: "video_description", widget: "text", required: false, hint: "When set, this text shows beside the video instead of below it — same layout as the Further Holdings photo. Leave blank to show the video on its own, full width of its column."}
               - {label: "Paragraph (optional)", name: "text", widget: "text", required: false, hint: "Can run to more than one paragraph — separate them with a blank line. Most blocks on this page will just be this field."}
               - {label: "Pull-quote (optional)", name: "quote", widget: "text", required: false, hint: "A short standout line, shown larger and set apart."}
 
@@ -305,7 +308,10 @@ collections:
           - {label: "Image alt text (optional)", name: "image_alt", widget: "string", required: false}
           - {label: "Image caption (optional)", name: "image_caption", widget: "string", required: false}
           - {label: "Video URL (optional)", name: "video", widget: "string", required: false, hint: "A YouTube link. Drops in an embedded video player at this point in the page."}
+          - {label: "Video cover image (optional)", name: "video_cover_image", widget: "image", required: false, hint: "Shown in place of YouTube's own thumbnail — visitors click it to play. Leave blank to use YouTube's default thumbnail instead."}
+          - {label: "Video cover image alt text (optional)", name: "video_cover_alt", widget: "string", required: false}
           - {label: "Video caption (optional)", name: "video_caption", widget: "string", required: false}
+          - {label: "Video description (optional)", name: "video_description", widget: "text", required: false, hint: "When set, this text shows beside the video instead of below it. Leave blank to show the video on its own."}
           - {label: "Paragraph (optional)", name: "text", widget: "text", required: false, hint: "Can run to more than one paragraph — separate them with a blank line."}
           - {label: "Pull-quote (optional)", name: "quote", widget: "text", required: false, hint: "A short standout line, shown larger and set apart."}
 

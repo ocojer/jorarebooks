@@ -788,6 +788,111 @@ picture { display: contents; }
       border: 0;
     }
 
+    /* A smaller video treatment for videos dropped into a content block
+       (About page, Site Pages) — same aspect ratio and framing as the
+       story hero video, but capped narrower so it reads as part of the
+       text flow rather than as a page-level hero moment. */
+    .story-facet-video-frame {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      aspect-ratio: 16/9;
+      background: #f0ede8;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .story-facet-video-frame iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* Custom cover image shown in place of YouTube's own thumbnail —
+       fills the same aspect-ratio frame as the iframe it replaces,
+       cropping to fit via object-fit rather than distorting. */
+    .video-facade {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+    }
+
+    .video-facade picture,
+    .video-facade img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .video-facade-play {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .video-facade-play::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 54%;
+      transform: translate(-50%, -50%);
+      border-style: solid;
+      border-width: 9px 0 9px 15px;
+      border-color: transparent transparent transparent var(--ink);
+    }
+
+    /* Video paired with a description — same media-left/text-right
+       treatment as the podcast section, so a video block reads
+       consistently with the rest of the site's photo+text pattern. */
+    .story-facet-video-with-text {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      margin: 1rem 0;
+    }
+
+    .story-facet-video-media {
+      flex: 0 0 400px;
+      max-width: 400px;
+      overflow: hidden;
+    }
+
+    .story-facet-video-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .story-facet-video-text p {
+      font-size: 0.88rem;
+      color: var(--mid);
+      line-height: 1.7;
+      margin-bottom: 0.75rem;
+    }
+
+    .story-facet-video-text p:last-child { margin-bottom: 0; }
+
+    @media (max-width: 600px) {
+      .story-facet-video-with-text {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .story-facet-video-media {
+        flex: 1 1 auto;
+        max-width: 100%;
+      }
+    }
+
     /* ── Highlights — each is a facet of the archive: a subtle header,
        the piece itself, a short factual caption, then the fuller story. */
     .story-highlights-intro {

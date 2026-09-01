@@ -28,5 +28,27 @@
 
   </div>
 
+  <script>
+    function playFacadeVideo(el) {
+      const embedUrl = el.getAttribute('data-embed');
+      if (!embedUrl) return;
+      const iframe = document.createElement('iframe');
+      iframe.src = embedUrl + (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1';
+      iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+      iframe.setAttribute('allowfullscreen', '');
+      iframe.style.position = 'absolute';
+      iframe.style.inset = '0';
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = '0';
+      el.replaceWith(iframe);
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && document.activeElement && document.activeElement.classList.contains('video-facade')) {
+        playFacadeVideo(document.activeElement);
+      }
+    });
+  </script>
+
 </body>
 </html>

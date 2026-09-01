@@ -670,6 +670,54 @@ function loadAbout() {
 //    paragraph / quote), so editing About feels exactly like editing
 //    any other page. Blocks with no heading just continue straight on
 //    from the one above, which is how most of this page will read. ──
+// ── Render a video block — a small standalone video by default, or
+//    (when a video description is set) the video paired side-by-side
+//    with that description, matching the podcast section's two-column
+//    treatment. If a cover image is set, it shows in place of
+//    YouTube's own thumbnail and swaps to the real embed on click
+//    (see playFacadeVideo() in about-template.html / page-template.html). ──
+async function renderVideoBlock(block, fallbackTitle) {
+  const embedUrl = toYouTubeEmbedUrl(block.video);
+  if (!embedUrl) return '';
+
+  const safeTitle = (block.video_caption || fallbackTitle || 'Video').replace(/"/g, '&quot;');
+
+  let mediaInnerHtml;
+  if (block.video_cover_image) {
+    const coverHtml = await cmsImageHtml(block.video_cover_image, block.video_cover_alt || '', 'large');
+    mediaInnerHtml = `<div class="video-facade" data-embed="${embedUrl}" onclick="playFacadeVideo(this)" role="button" tabindex="0" aria-label="Play video">
+          ${coverHtml}
+          <span class="video-facade-play" aria-hidden="true"></span>
+        </div>`;
+  } else {
+    mediaInnerHtml = `<iframe src="${embedUrl}" title="${safeTitle}" allowfullscreen></iframe>`;
+  }
+
+  const captionHtml = block.video_caption
+    ? `<p class="story-facet-caption">${block.video_caption}</p>`
+    : '';
+
+  const descParas = splitParagraphs(block.video_description);
+  if (descParas.length) {
+    return `      <div class="story-facet-video-with-text">
+        <div class="story-facet-video-media">
+          <div class="story-facet-video-frame">
+            ${mediaInnerHtml}
+          </div>
+          ${captionHtml}
+        </div>
+        <div class="story-facet-video-text">
+${descParas.map(p => `          <p>${p}</p>`).join('\n')}
+        </div>
+      </div>`;
+  }
+
+  return `      <div class="story-facet-video-frame">
+        ${mediaInnerHtml}
+      </div>
+      ${captionHtml}`;
+}
+
 async function renderAboutPage(about, mastheadHtml, footerHtml) {
   const blocks = Array.isArray(about.content_blocks) ? about.content_blocks : [];
   const facetParts = await Promise.all(blocks.map(async (b, i) => {
@@ -685,15 +733,8 @@ async function renderAboutPage(about, mastheadHtml, footerHtml) {
         parts.push(`      <p class="story-facet-caption">${block.image_caption}</p>`);
       }
     }
-    const embedUrl = toYouTubeEmbedUrl(block.video);
-    if (embedUrl) {
-      parts.push(`      <div class="story-video-frame">
-        <iframe src="${embedUrl}" title="${(block.video_caption || 'About Jeremy O\u2019Connor').replace(/"/g, '&quot;')}" allowfullscreen></iframe>
-      </div>`);
-      if (block.video_caption) {
-        parts.push(`      <p class="story-facet-caption">${block.video_caption}</p>`);
-      }
-    }
+    const videoHtml = await renderVideoBlock(block, 'About Jeremy O\u2019Connor');
+    if (videoHtml) parts.push(videoHtml);
     const textParas = splitParagraphs(block.text);
     if (textParas.length) {
       parts.push(`      <div class="story-facet-text">
@@ -763,15 +804,8 @@ async function renderContentPage(page, mastheadHtml, footerHtml) {
         parts.push(`      <p class="story-facet-caption">${block.image_caption}</p>`);
       }
     }
-    const embedUrl = toYouTubeEmbedUrl(block.video);
-    if (embedUrl) {
-      parts.push(`      <div class="story-video-frame">
-        <iframe src="${embedUrl}" title="${(block.video_caption || page.title || 'Video').replace(/"/g, '&quot;')}" allowfullscreen></iframe>
-      </div>`);
-      if (block.video_caption) {
-        parts.push(`      <p class="story-facet-caption">${block.video_caption}</p>`);
-      }
-    }
+    const videoHtml = await renderVideoBlock(block, page.title || 'Video');
+    if (videoHtml) parts.push(videoHtml);
     const textParas = splitParagraphs(block.text);
     if (textParas.length) {
       parts.push(`      <div class="story-facet-text">
@@ -1333,7 +1367,6 @@ async function build() {
   console.log('Loading shared partials...');
   const mastheadHtml = loadPartial('masthead.html');
   const footerHtml = loadPartial('footer.html');
-  const footerHomeHtml = loadPartial('footer-home.html');
   const inquireModalHtml = loadPartial('inquire-modal.html');
 
   console.log('Loading site info...');
@@ -1448,7 +1481,7 @@ async function build() {
   output = output.replace('<!-- COMING_SOON -->', comingSoonHtml);
   output = output.replace('<!-- MASTHEAD -->', mastheadHtml);
   output = output.replace('<!-- INQUIRE_MODAL -->', inquireModalHtml);
-  output = output.replace('<!-- FOOTER -->', footerHomeHtml);
+  output = output.replace('<!-- FOOTER -->', footerHtml);
 
   fs.writeFileSync(OUTPUT, output, 'utf8');
 
