@@ -333,7 +333,14 @@ async function renderHoldings(holdings) {
 //    text renders exactly as it always has, full width. ──────────────
 async function renderLatestEpisode(item, podcastData) {
   const title   = clean(getTag(item, 'title')) || 'Latest Episode';
-  const desc    = clean(getTag(item, 'description'));
+  const rssDesc = clean(getTag(item, 'description'));
+  // An edited description in the CMS always wins over the raw RSS text —
+  // that's what lets you tighten it to a real paragraph instead of
+  // truncating with "Read more". Leave the CMS field blank and a new
+  // episode's raw Transistor description shows automatically until you
+  // choose to edit it.
+  const desc = (podcastData && podcastData.episode_description && podcastData.episode_description.trim())
+    || rssDesc;
   const audio   = (item.match(/<enclosure[^>]+url="([^"]+)"/i) || [])[1] || '';
   const pubDate = getTag(item, 'pubDate');
   const date    = pubDate
@@ -345,8 +352,7 @@ async function renderLatestEpisode(item, podcastData) {
   const innerHtml = `<span class="latest-label">Latest Episode</span>
       <p class="latest-title">${title}</p>
       ${date ? `<span class="latest-date">${date}</span>` : ''}
-      ${desc ? `<p class="latest-desc">${desc}</p>
-      <button class="latest-more" onclick="toggleDesc(this)">Read more</button>` : ''}
+      ${desc ? `<p class="latest-desc">${desc}</p>` : ''}
       ${audio ? `<audio class="latest-audio" controls preload="none" src="${audio}"></audio>` : ''}`;
 
   const episodeImage = podcastData && podcastData.episode_image;

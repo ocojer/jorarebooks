@@ -382,32 +382,7 @@ picture { display: contents; }
       color: var(--mid);
       line-height: 1.75;
       margin-bottom: 0.75rem;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
     }
-
-    .latest-desc.expanded {
-      display: block;
-    }
-
-    .latest-more {
-      font-size: 0.63rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--light);
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-family: inherit;
-      padding: 0;
-      display: block;
-      margin-bottom: 0.75rem;
-      transition: color 0.2s;
-    }
-
-    .latest-more:hover { color: var(--ink); }
 
     .latest-audio {
       width: 100%;

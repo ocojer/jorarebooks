@@ -222,6 +222,11 @@ collections:
             widget: "string"
             required: false
             hint: "A short caption under the photo — e.g. describing what's pictured."
+          - label: "Episode description override (optional)"
+            name: "episode_description"
+            widget: "text"
+            required: false
+            hint: "Leave blank and the episode's description is pulled automatically from Transistor. Type anything here and it replaces that text entirely — edit it down as tight as you like, there's no length limit or \"Read more\" anymore, whatever you write shows in full. Clear this field when a new episode goes up to fall back to the automatic text again."
           - label: "Selected episodes"
             name: "selected_episodes"
             widget: "list"

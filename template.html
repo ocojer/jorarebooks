@@ -65,14 +65,6 @@
 
   </div>
 
-  <script>
-    function toggleDesc(btn) {
-      const episode = btn.closest('.latest-episode');
-      const desc = episode.querySelector('.latest-desc');
-      const expanded = desc.classList.toggle('expanded');
-      btn.textContent = expanded ? 'Read less' : 'Read more';
-    }
-  </script>
   <!-- Hidden form for Netlify Forms detection -->
   <form name="inquire" netlify netlify-honeypot="bot-field" hidden>
     <input type="text" name="name">
