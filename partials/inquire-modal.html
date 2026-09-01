@@ -1,0 +1,75 @@
+  <!-- INQUIRE MODAL -->
+  <div class="modal-overlay" id="inquire-modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+      <div class="modal-title">Inquire</div>
+      <div class="modal-item" id="modal-item-title"></div>
+      <div id="modal-form-wrap">
+        <form name="inquire" method="POST" data-netlify="true" onsubmit="handleModalSubmit(event)">
+          <input type="hidden" name="form-name" value="inquire">
+          <input type="hidden" name="item" id="modal-item-field">
+          <div class="modal-field">
+            <label class="modal-label" for="modal-name">Name</label>
+            <input class="modal-input" type="text" id="modal-name" name="name" required>
+          </div>
+          <div class="modal-field">
+            <label class="modal-label" for="modal-email">Email</label>
+            <input class="modal-input" type="email" id="modal-email" name="email" required>
+          </div>
+          <div class="modal-field">
+            <label class="modal-label" for="modal-message">Message (optional)</label>
+            <textarea class="modal-textarea" id="modal-message" name="message" placeholder="Any questions or additional context..."></textarea>
+          </div>
+          <button class="modal-submit" type="submit">Send Inquiry</button>
+          <p class="modal-note">We'll respond within one business day.</p>
+        </form>
+      </div>
+      <div class="modal-success" id="modal-success" style="display:none;">
+        <div class="modal-success-title">Thank you.</div>
+        <div class="modal-success-msg">Your inquiry has been sent. We'll be in touch shortly.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openModal(itemTitle) {
+      document.getElementById('modal-item-title').textContent = itemTitle;
+      document.getElementById('modal-item-field').value = itemTitle;
+      document.getElementById('modal-success').style.display = 'none';
+      document.getElementById('modal-form-wrap').style.display = '';
+      document.getElementById('inquire-modal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => document.getElementById('modal-name').focus(), 100);
+    }
+
+    function closeModal() {
+      document.getElementById('inquire-modal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    async function handleModalSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+      try {
+        const response = await fetch(window.location.pathname, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(data).toString()
+        });
+        if (response.ok) {
+          document.getElementById('modal-form-wrap').style.display = 'none';
+          document.getElementById('modal-success').style.display = '';
+        } else {
+          throw new Error('Submission failed');
+        }
+      } catch(err) {
+        // Fallback to mailto
+        const name = data.get('name') || '';
+        const msg = data.get('message') || '';
+        window.location.href = `mailto:info@jorarebooks.com?subject=${encodeURIComponent('Inquiry: ' + data.get('item'))}&body=${encodeURIComponent('From: ' + name + '\n\n' + msg)}`;
+      }
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  </script>

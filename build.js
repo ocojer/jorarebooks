@@ -269,8 +269,7 @@ function cardActionsHtml(h) {
   if (actions.length === 0) {
     const inquireText = h.price && h.price.trim() ? h.price : 'Inquire';
     const plainTitle = h.title.replace(/<[^>]+>/g, '');
-    const subject = encodeURIComponent(`Inquiry: ${plainTitle}`);
-    actions.push(`<a class="card-action" href="mailto:jeremy@jorarebooks.com?subject=${subject}">${inquireText}</a>`);
+    actions.push(`<button type="button" class="card-action" style="background:none;border:none;padding:0;font:inherit;cursor:pointer;" onclick="openModal('${plainTitle.replace(/'/g, "\\'")}')">${inquireText}</button>`);
   }
   return actions.join('<span class="card-action-sep">·</span>');
 }
@@ -377,7 +376,7 @@ function shuffle(arr) {
   return a;
 }
 
-async function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml) {
+async function renderStoryPage(holding, allHoldings, mastheadHtml, footerHtml, inquireModalHtml) {
   const plainTitle = holding.title.replace(/<[^>]+>/g, '');
   const description = (holding.description || '').replace(/<[^>]+>/g, '').slice(0, 160);
   const canonicalUrl = `https://www.jorarebooks.com/${holding.slug}/`;
@@ -539,7 +538,7 @@ ${moreCards.join('\n\n')}
   let output = fs.readFileSync(STORY_TEMPLATE, 'utf8');
 
   const required = [
-    '<!-- MASTHEAD -->', '<!-- FOOTER -->',
+    '<!-- MASTHEAD -->', '<!-- FOOTER -->', '<!-- INQUIRE_MODAL -->',
     '<!-- STORY_TITLE -->', '<!-- STORY_CONTENTS -->', '<!-- STORY_LAYOUT -->'
   ];
   for (const marker of required) {
@@ -554,6 +553,7 @@ ${moreCards.join('\n\n')}
     .replace('<!-- PAGE_DESCRIPTION -->', description)
     .replace('<!-- CANONICAL_URL -->', canonicalUrl)
     .replace('<!-- MASTHEAD -->', mastheadHtml)
+    .replace('<!-- INQUIRE_MODAL -->', inquireModalHtml)
     .replace('<!-- STORY_TITLE -->', holding.title)
     .replace('<!-- STORY_CONTENTS -->', contentsHtml)
     .replace('<!-- STORY_LAYOUT -->', layoutHtml)
@@ -951,7 +951,7 @@ function renderItemBody(record) {
 }
 
 // ── Render a single shop item page ───────────────────────────
-function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteInfo) {
+function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteInfo, inquireModalHtml) {
   const title = field(record, 'TITLE');
   const author = field(record, 'AUTHOR');
   const artist = field(record, 'ARTIST/ILLUSTRATOR');
@@ -1038,6 +1038,7 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
     .replace('<!-- ITEM_SEO_DESC -->', seoDesc)
     .replace('<!-- ITEM_CANONICAL -->', canonicalUrl)
     .replace('<!-- MASTHEAD -->', mastheadHtml)
+    .replace('<!-- INQUIRE_MODAL -->', inquireModalHtml)
     .replace('<!-- ITEM_THUMBS -->', renderThumbs(record))
     .replace('<!-- ITEM_MAIN_IMAGE -->', mainImgHtml)
     .replace('<!-- ITEM_CATEGORY -->', categoryDisplay)
@@ -1161,6 +1162,7 @@ async function build() {
   const mastheadHtml = loadPartial('masthead.html');
   const footerHtml = loadPartial('footer.html');
   const footerHomeHtml = loadPartial('footer-home.html');
+  const inquireModalHtml = loadPartial('inquire-modal.html');
 
   console.log('Loading site info...');
   const siteInfo = loadSiteInfo();
@@ -1238,6 +1240,10 @@ async function build() {
     console.error('Template is missing the <!-- MASTHEAD --> placeholder.');
     process.exit(1);
   }
+  if (!output.includes('<!-- INQUIRE_MODAL -->')) {
+    console.error('Template is missing the <!-- INQUIRE_MODAL --> placeholder.');
+    process.exit(1);
+  }
   if (!output.includes('<!-- FOOTER -->')) {
     console.error('Template is missing the <!-- FOOTER --> placeholder.');
     process.exit(1);
@@ -1250,6 +1256,7 @@ async function build() {
   output = output.replace('<!-- SECTIONS -->', sectionsHtml);
   output = output.replace('<!-- COMING_SOON -->', comingSoonHtml);
   output = output.replace('<!-- MASTHEAD -->', mastheadHtml);
+  output = output.replace('<!-- INQUIRE_MODAL -->', inquireModalHtml);
   output = output.replace('<!-- FOOTER -->', footerHomeHtml);
 
   fs.writeFileSync(OUTPUT, output, 'utf8');
@@ -1257,7 +1264,7 @@ async function build() {
   console.log('Building story pages...');
   const storyHoldings = holdings.filter(h => h.slug && h.slug.trim());
   for (const holding of storyHoldings) {
-    const storyHtml = await renderStoryPage(holding, holdings, mastheadHtml, footerHtml);
+    const storyHtml = await renderStoryPage(holding, holdings, mastheadHtml, footerHtml, inquireModalHtml);
     const outDir = path.join(__dirname, holding.slug);
     fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(path.join(outDir, 'index.html'), storyHtml, 'utf8');
@@ -1288,7 +1295,7 @@ async function build() {
     // Individual item pages
     for (const record of inventoryRecords) {
       const slug = itemSlug(record);
-      const itemHtml = renderShopItemPage(record, inventoryRecords, mastheadHtml, footerHtml, siteInfo);
+      const itemHtml = renderShopItemPage(record, inventoryRecords, mastheadHtml, footerHtml, siteInfo, inquireModalHtml);
       const itemDir = path.join(__dirname, 'shop', slug);
       fs.mkdirSync(itemDir, { recursive: true });
       fs.writeFileSync(path.join(itemDir, 'index.html'), itemHtml, 'utf8');
