@@ -277,6 +277,38 @@ collections:
               - {label: "Paragraph (optional)", name: "text", widget: "text", required: false, hint: "Can run to more than one paragraph — separate them with a blank line. Most blocks on this page will just be this field."}
               - {label: "Pull-quote (optional)", name: "quote", widget: "text", required: false, hint: "A short standout line, shown larger and set apart."}
 
+  - name: "pages"
+    label: "Site Pages"
+    label_singular: "Page"
+    folder: "content/pages"
+    create: true
+    extension: "json"
+    format: "json"
+    slug: "{{slug}}"
+    summary: "{{title}}"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+        hint: "Shown as the page heading, e.g. \"Privacy Policy\"."
+      - label: "URL slug"
+        name: "slug"
+        widget: "string"
+        hint: "Sets the page's address — \"privacy-policy\" makes jorarebooks.com/privacy-policy/. Use lowercase letters, numbers, and hyphens only, no spaces. Changing this after the page is live will break any existing links to it."
+      - label: "Page content"
+        name: "content_blocks"
+        widget: "list"
+        hint: "Same block system as the About page. Add a heading to start a new section (this puts a break above it); leave heading blank to continue straight on from the block above. Within one block, fields always render in this order: heading, image, image caption, video, video caption, paragraph, quote."
+        fields:
+          - {label: "Heading (optional)", name: "heading", widget: "string", required: false, hint: "Only needed if you want a named section break. Leave blank to just continue the page."}
+          - {label: "Image (optional)", name: "image", widget: "image", required: false}
+          - {label: "Image alt text (optional)", name: "image_alt", widget: "string", required: false}
+          - {label: "Image caption (optional)", name: "image_caption", widget: "string", required: false}
+          - {label: "Video URL (optional)", name: "video", widget: "string", required: false, hint: "A YouTube link. Drops in an embedded video player at this point in the page."}
+          - {label: "Video caption (optional)", name: "video_caption", widget: "string", required: false}
+          - {label: "Paragraph (optional)", name: "text", widget: "text", required: false, hint: "Can run to more than one paragraph — separate them with a blank line."}
+          - {label: "Pull-quote (optional)", name: "quote", widget: "text", required: false, hint: "A short standout line, shown larger and set apart."}
+
   - name: "sections"
     label: "Feature Sections"
     label_singular: "Section"

@@ -1,0 +1,29 @@
+{
+  "title": "Privacy Policy",
+  "slug": "privacy-policy",
+  "content_blocks": [
+    {
+      "text": "This policy describes what information is collected through jorarebooks.com and how it's used. Last updated September 2026."
+    },
+    {
+      "heading": "Information we collect",
+      "text": "When you submit an inquiry through this site, we collect the name, email address, and any message you provide. This information is used only to respond to your inquiry — it is not sold, rented, or shared with third parties for marketing purposes."
+    },
+    {
+      "heading": "How inquiries are handled",
+      "text": "Inquiry submissions are processed through Netlify Forms, the form service used to run this site. No payment or financial information is collected through this site."
+    },
+    {
+      "heading": "Cookies and analytics",
+      "text": "This site does not use advertising trackers or third-party ad networks."
+    },
+    {
+      "heading": "Contact",
+      "text": "Questions about this policy can be sent to jeremy@jorarebooks.com."
+    },
+    {
+      "heading": "Changes to this policy",
+      "text": "This policy may be updated from time to time. The date above reflects the most recent revision."
+    }
+  ]
+}

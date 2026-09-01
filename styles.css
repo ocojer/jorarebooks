@@ -499,6 +499,23 @@ picture { display: contents; }
       margin-bottom: 1.25rem;
     }
 
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .footer-links a {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--light);
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--ink); }
+
     .footer-contact a {
       color: var(--ink);
       border-bottom: 1px solid var(--border);

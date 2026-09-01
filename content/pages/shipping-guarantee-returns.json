@@ -1,0 +1,26 @@
+{
+  "title": "Shipping, Guarantee & Returns",
+  "slug": "shipping-guarantee-returns",
+  "content_blocks": [
+    {
+      "heading": "Guarantee",
+      "text": "Every item is guaranteed as described. If an item does not match its description in any material respect, contact us and we'll make it right."
+    },
+    {
+      "heading": "Shipping",
+      "text": "Free shipping within the US. Items are carefully packed and insured for their full value. International shipping is available — contact us for a quote before ordering."
+    },
+    {
+      "heading": "Returns",
+      "text": "Returns are accepted within 10 business days of receipt, provided the item is returned in the same condition it was shipped. Please contact us before returning anything, so we know to expect it."
+    },
+    {
+      "heading": "Institutional terms",
+      "text": "Extended payment terms and approval periods are available on request for institutional buyers — libraries, universities, and archives."
+    },
+    {
+      "heading": "Questions",
+      "text": "For anything not covered here, reach out at jeremy@jorarebooks.com."
+    }
+  ]
+}

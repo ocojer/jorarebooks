@@ -15,10 +15,12 @@ const STORY_TEMPLATE    = path.join(__dirname, 'story-template.html');
 const SHOP_TEMPLATE     = path.join(__dirname, 'shop-template.html');
 const SHOP_ITEM_TEMPLATE = path.join(__dirname, 'shop-item-template.html');
 const ABOUT_TEMPLATE    = path.join(__dirname, 'about-template.html');
+const PAGE_TEMPLATE     = path.join(__dirname, 'page-template.html');
 const OUTPUT            = path.join(__dirname, 'index.html');
 const HOLDINGS_DIR      = path.join(__dirname, 'content', 'holdings');
 const HOMEPAGE_FILE     = path.join(__dirname, 'content', 'homepage.json');
 const ABOUT_FILE        = path.join(__dirname, 'content', 'about.json');
+const PAGES_DIR         = path.join(__dirname, 'content', 'pages');
 const PODCAST_FILE      = path.join(__dirname, 'content', 'podcast.json');
 const COMING_SOON_FILE  = path.join(__dirname, 'content', 'coming-soon.json');
 const SECTIONS_DIR      = path.join(__dirname, 'content', 'sections');
@@ -721,6 +723,92 @@ ${textParas.map(p => `        <p>${p}</p>`).join('\n')}
   return output;
 }
 
+// ── Load every content/pages/*.json — simple site pages like Privacy
+//    Policy, Shipping & Returns, Accessibility, or any future page
+//    created directly in the CMS. Same folder-loading pattern as
+//    holdings and sections. ────────────────────────────────────────
+function loadPages() {
+  if (!fs.existsSync(PAGES_DIR)) {
+    console.log('No content/pages folder found — skipping site pages.');
+    return [];
+  }
+  const files = fs.readdirSync(PAGES_DIR).filter(f => f.endsWith('.json'));
+  const pages = files.map(file => {
+    const raw = fs.readFileSync(path.join(PAGES_DIR, file), 'utf8');
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      console.error(`Skipping ${file} — invalid JSON: ${e.message}`);
+      return null;
+    }
+  }).filter(Boolean);
+  return pages;
+}
+
+// ── Build one site page — the same flexible block system as the About
+//    page (heading / image+caption / video+caption / paragraph / quote).
+//    A fresh implementation rather than reusing renderAboutPage, so the
+//    working About page is never at risk from changes made here. ─────
+async function renderContentPage(page, mastheadHtml, footerHtml) {
+  const blocks = Array.isArray(page.content_blocks) ? page.content_blocks : [];
+  const facetParts = await Promise.all(blocks.map(async (b, i) => {
+    const block = typeof b === 'string' ? { text: b } : b;
+    const parts = [];
+    if (block.heading && i > 0) parts.push(`      <hr class="story-facet-divider">`);
+    if (block.heading) parts.push(`      <h2 class="story-subhead">${block.heading}</h2>`);
+    if (block.image) {
+      const imgHtml = await cmsImageHtml(block.image, block.image_alt || '', 'large');
+      parts.push(`      <div class="story-media-frame">${imgHtml}</div>`);
+      if (block.image_caption) {
+        parts.push(`      <p class="story-facet-caption">${block.image_caption}</p>`);
+      }
+    }
+    const embedUrl = toYouTubeEmbedUrl(block.video);
+    if (embedUrl) {
+      parts.push(`      <div class="story-video-frame">
+        <iframe src="${embedUrl}" title="${(block.video_caption || page.title || 'Video').replace(/"/g, '&quot;')}" allowfullscreen></iframe>
+      </div>`);
+      if (block.video_caption) {
+        parts.push(`      <p class="story-facet-caption">${block.video_caption}</p>`);
+      }
+    }
+    const textParas = splitParagraphs(block.text);
+    if (textParas.length) {
+      parts.push(`      <div class="story-facet-text">
+${textParas.map(p => `        <p>${p}</p>`).join('\n')}
+      </div>`);
+    }
+    if (block.quote) parts.push(`      <blockquote class="story-quote">${block.quote}</blockquote>`);
+    return parts.join('\n');
+  }));
+  const bodyHtml = facetParts.filter(Boolean).join('\n');
+
+  const title = page.title || 'Untitled Page';
+  const description = bodyHtml.replace(/<[^>]+>/g, '').trim().slice(0, 160);
+  const canonicalUrl = `https://www.jorarebooks.com/${page.slug}/`;
+
+  let output = fs.readFileSync(PAGE_TEMPLATE, 'utf8');
+
+  const required = ['<!-- MASTHEAD -->', '<!-- FOOTER -->', '<!-- PAGE_HEADING -->', '<!-- PAGE_BODY -->'];
+  for (const marker of required) {
+    if (!output.includes(marker)) {
+      console.error(`page-template.html is missing the ${marker} placeholder.`);
+      process.exit(1);
+    }
+  }
+
+  output = output
+    .replace('<!-- PAGE_TITLE -->', title)
+    .replace('<!-- PAGE_DESCRIPTION -->', description)
+    .replace('<!-- CANONICAL_URL -->', canonicalUrl)
+    .replace('<!-- MASTHEAD -->', mastheadHtml)
+    .replace('<!-- PAGE_HEADING -->', title)
+    .replace('<!-- PAGE_BODY -->', bodyHtml)
+    .replace('<!-- FOOTER -->', footerHtml);
+
+  return output;
+}
+
 // ── Load content/site-info.json ──────────────────────────────
 function loadSiteInfo() {
   if (!fs.existsSync(SITE_INFO_FILE)) return {};
@@ -1384,6 +1472,20 @@ async function build() {
     console.log('  /about/');
   } else {
     console.log('  No content/about.json — skipping About page.');
+  }
+
+  console.log('Building site pages...');
+  const pages = loadPages();
+  for (const page of pages) {
+    if (!page.slug || !page.slug.trim()) {
+      console.error(`  Skipping page "${page.title || '(untitled)'}" — no slug set.`);
+      continue;
+    }
+    const pageHtml = await renderContentPage(page, mastheadHtml, footerHtml);
+    const pageDir = path.join(__dirname, page.slug);
+    fs.mkdirSync(pageDir, { recursive: true });
+    fs.writeFileSync(path.join(pageDir, 'index.html'), pageHtml, 'utf8');
+    console.log(`  /${page.slug}/`);
   }
 
   console.log('Building shop pages...');
