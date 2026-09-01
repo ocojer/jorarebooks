@@ -173,7 +173,19 @@ function loadPodcast() {
 
 async function renderHero(data) {
   if (!data.hero_image) return '';
-  return cmsImageHtml(data.hero_image, data.hero_alt || '', 'large');
+  const imgHtml = await cmsImageHtml(data.hero_image, data.hero_alt || '', 'large');
+  if (!imgHtml) return '';
+
+  const captionHtml = data.hero_caption
+    ? `<div class="hero-scrim"><p class="hero-caption">${data.hero_caption}</p></div>`
+    : '';
+
+  const inner = imgHtml + captionHtml;
+
+  if (data.hero_link && data.hero_link.trim()) {
+    return `<a href="${data.hero_link}" class="hero-link">${inner}</a>`;
+  }
+  return inner;
 }
 
 function renderIntro(data) {
