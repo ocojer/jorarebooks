@@ -1,7 +1,21 @@
 {
-  "headline": "My podcast",
-  "description": "I also co-host Rare Book Chat, a podcast about the rare book trade, with Michael DiRuggiero. Michael and I have been having a good time talking about and trading rare books since last century, and we're still at it — so please give us a listen on whatever pod platform you call home.",
-  "episode_image": "",
+  "headline": "Rare Book Chat (A podcast!)",
+  "description": "I co-host Rare Book Chat, a podcast about the rare book trade with Michael DiRuggiero. Michael and I have been having a good time talking about and trading rare books since last century, and we're still at it — so please give us a listen on whatever pod platform you call home.",
+  "episode_image": "/annie-hall-diane-keatons-copy-bonhams-2026.webp",
   "episode_alt": "",
-  "episode_caption": ""
+  "episode_caption": "Diane Keaton’s copy of the Annie Hall script (est. $2,000 to $3,000, sold for $394,200). Photo courtesy of Bonhams.",
+  "selected_episodes": [
+    {
+      "text": "A conversation with Sarah Funke Butler on an extraordinary archive of letters from Ernest Hemingway to journalist Lillian Ross, casting new light on Hemingway's attitudes toward women and his inner creative life.",
+      "link": ""
+    },
+    {
+      "text": "A conversation with Adam Douglas, Senior Specialist at Peter Harrington Books, London, on their copy of the 1623 First Folio of Shakespeare. Without it, roughly half of Shakespeare's plays would have been lost entirely, including Macbeth, The Tempest, and Twelfth Night.",
+      "link": ""
+    },
+    {
+      "text": "A conversation with Darren Sutherland of Bonhams on Sylvia Plath's favorite book: her heavily annotated copy of The Joy of Cooking, which she called her \"beloved Rombauer.\"",
+      "link": ""
+    }
+  ]
 }
