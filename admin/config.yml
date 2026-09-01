@@ -222,6 +222,20 @@ collections:
             widget: "string"
             required: false
             hint: "A short caption under the photo — e.g. describing what's pictured."
+          - label: "Selected episodes"
+            name: "selected_episodes"
+            widget: "list"
+            hint: "Hand-pick a few episodes worth surfacing — big-name guests, standout stories, whatever's worth the signal. One entry per episode; use the + button to add another, or the trash icon to remove one."
+            fields:
+              - label: "Teaser text"
+                name: "text"
+                widget: "text"
+                hint: "The line shown on the homepage, e.g. \"A conversation with Adam Douglas, Senior Specialist at Peter Harrington Books, on their copy of the 1623 First Folio of Shakespeare.\""
+              - label: "Link (optional)"
+                name: "link"
+                widget: "string"
+                required: false
+                hint: "Where the line goes when clicked — the episode's page, or leave blank for plain, unlinked text."
 
   - name: "about"
     label: "About Page"

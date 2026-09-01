@@ -325,7 +325,7 @@ picture { display: contents; }
     }
 
     .latest-episode-photo {
-      flex: 0 0 220px;
+      flex: 0 0 340px;
     }
 
     .latest-episode-photo img {
@@ -441,6 +441,14 @@ picture { display: contents; }
     }
 
     .podcast-episodes li:last-child { border-bottom: 1px solid var(--border); }
+
+    .podcast-episodes li a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .podcast-episodes li a:hover { color: #1a7fad; }
 
     .podcast-all {
       display: inline-block;

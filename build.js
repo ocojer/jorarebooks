@@ -372,6 +372,21 @@ async function renderLatestEpisode(item, podcastData) {
     </div>`;
 }
 
+// ── Build the "Selected Episodes" list — hand-picked by you in the CMS
+//    (content/podcast.json's selected_episodes field), each with its own
+//    teaser text and an optional link to that episode. Plain text if no
+//    link is set, matching how the list already looked.
+function renderSelectedEpisodes(list) {
+  const items = Array.isArray(list) ? list : [];
+  return items.map(entry => {
+    const text = entry.text || '';
+    const link = entry.link && entry.link.trim();
+    return link
+      ? `      <li><a href="${link}" target="_blank" rel="noopener noreferrer">${text}</a></li>`
+      : `      <li>${text}</li>`;
+  }).join('\n');
+}
+
 // ── Main ────────────────────────────────────────────────────
 // ── Load a shared partial (masthead, footer) ─────────────────
 function loadPartial(name) {
@@ -1222,6 +1237,7 @@ async function build() {
 
   console.log('Loading podcast section content...');
   const podcastData = loadPodcast();
+  const selectedEpisodesHtml = renderSelectedEpisodes(podcastData.selected_episodes);
 
   console.log('Loading holdings...');
   const holdings = loadHoldings();
@@ -1279,6 +1295,10 @@ async function build() {
     console.error('Template is missing the <!-- PODCAST_DESC --> placeholder.');
     process.exit(1);
   }
+  if (!output.includes('<!-- SELECTED_EPISODES -->')) {
+    console.error('Template is missing the <!-- SELECTED_EPISODES --> placeholder.');
+    process.exit(1);
+  }
   if (!output.includes('<!-- SECTIONS -->')) {
     console.error('Template is missing the <!-- SECTIONS --> placeholder.');
     process.exit(1);
@@ -1306,6 +1326,7 @@ async function build() {
   output = output.replace('<!-- INTRO -->', introHtml);
   output = output.replace('<!-- PODCAST_HEADLINE -->', podcastData.headline || 'My podcast');
   output = output.replace('<!-- PODCAST_DESC -->', podcastData.description || '');
+  output = output.replace('<!-- SELECTED_EPISODES -->', selectedEpisodesHtml);
   output = output.replace('<!-- SECTIONS -->', sectionsHtml);
   output = output.replace('<!-- COMING_SOON -->', comingSoonHtml);
   output = output.replace('<!-- MASTHEAD -->', mastheadHtml);
