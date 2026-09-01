@@ -321,7 +321,7 @@ picture { display: contents; }
     .latest-episode-with-photo {
       display: flex;
       gap: 2rem;
-      align-items: flex-start;
+      align-items: center;
     }
 
     .latest-episode-photo {
