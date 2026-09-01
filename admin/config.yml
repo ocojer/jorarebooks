@@ -70,6 +70,11 @@ collections:
             widget: "string"
             required: false
             hint: "A short caption under the photo — keep it teasing rather than fully explanatory if the piece isn't ready to be named yet."
+          - label: "Newsletter prompt (optional)"
+            name: "newsletter_prompt"
+            widget: "string"
+            required: false
+            hint: "A short line inviting signups, e.g. \"Hear about new acquisitions first.\" Adds an email signup field right below the text. Leave blank to hide the signup entirely."
 
       - name: "site_info"
         label: "Contact &amp; Site Info"

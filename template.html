@@ -74,5 +74,36 @@
     <input type="text" name="bot-field">
   </form>
 
+  <form name="newsletter" netlify netlify-honeypot="bot-field" hidden>
+    <input type="email" name="email">
+    <input type="text" name="bot-field">
+  </form>
+
+  <script>
+    async function handleNewsletterSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+      const btn = form.querySelector('.newsletter-submit');
+      btn.disabled = true;
+      try {
+        const response = await fetch(window.location.pathname, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(data).toString()
+        });
+        if (response.ok) {
+          form.style.display = 'none';
+          document.getElementById('newsletter-success').style.display = '';
+        } else {
+          throw new Error('Submission failed');
+        }
+      } catch (err) {
+        btn.disabled = false;
+        alert('Something went wrong — please try again, or email jeremy@jorarebooks.com to be added to the list.');
+      }
+    }
+  </script>
+
 </body>
 </html>

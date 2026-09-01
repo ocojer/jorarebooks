@@ -217,7 +217,18 @@ async function renderComingSoon() {
   }
   const note = data.note ? `      <p class="coming-soon-headline">${data.note}</p>` : '';
   const comingSoonText = data.coming_soon_text ? `      <p>${data.coming_soon_text}</p>` : '';
-  const textHtml = [note, comingSoonText].filter(Boolean).join('\n');
+  const newsletterHtml = data.newsletter_prompt
+    ? `      <form class="newsletter-form" id="newsletter-form" onsubmit="handleNewsletterSubmit(event)">
+        <input type="hidden" name="form-name" value="newsletter">
+        <p class="newsletter-prompt">${data.newsletter_prompt}</p>
+        <div class="newsletter-row">
+          <input type="email" name="email" class="newsletter-input" placeholder="Email address" required>
+          <button type="submit" class="newsletter-submit">Sign up</button>
+        </div>
+      </form>
+      <p class="newsletter-success" id="newsletter-success" style="display:none;">Thanks — you're on the list.</p>`
+    : '';
+  const textHtml = [note, comingSoonText, newsletterHtml].filter(Boolean).join('\n');
 
   if (!data.image) {
     return textHtml;
