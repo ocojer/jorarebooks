@@ -318,6 +318,37 @@ picture { display: contents; }
       padding: 1.5rem 0 1.75rem;
     }
 
+    .latest-episode-with-photo {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+
+    .latest-episode-photo {
+      flex: 0 0 220px;
+    }
+
+    .latest-episode-photo img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .latest-episode-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    @media (max-width: 600px) {
+      .latest-episode-with-photo {
+        flex-direction: column;
+      }
+      .latest-episode-photo {
+        flex: 1 1 auto;
+        width: 100%;
+      }
+    }
+
     .latest-label {
       font-size: 0.63rem;
       letter-spacing: 0.16em;

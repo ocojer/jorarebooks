@@ -192,6 +192,37 @@ collections:
           - {label: "Photo alt text", name: "alt", widget: "string", required: false}
           - {label: "Caption", name: "caption", widget: "string", required: false}
 
+  - name: "podcast"
+    label: "Podcast Section"
+    files:
+      - name: "podcast_section"
+        label: "Podcast (Homepage)"
+        file: "content/podcast.json"
+        fields:
+          - label: "Headline"
+            name: "headline"
+            widget: "string"
+            default: "My podcast"
+            hint: "Short link text above the description, e.g. \"My podcast\". Links out to rarebookchat.com."
+          - label: "Description"
+            name: "description"
+            widget: "text"
+            hint: "A sentence or two introducing Rare Book Chat."
+          - label: "Featured episode photo (optional)"
+            name: "episode_image"
+            widget: "image"
+            required: false
+            hint: "A photo related to the current episode, shown beside the episode text. Leave blank to show the episode text at full width with no photo."
+          - label: "Featured episode photo alt text (optional)"
+            name: "episode_alt"
+            widget: "string"
+            required: false
+          - label: "Featured episode photo caption (optional)"
+            name: "episode_caption"
+            widget: "string"
+            required: false
+            hint: "A short caption under the photo — e.g. describing what's pictured."
+
   - name: "about"
     label: "About Page"
     files:

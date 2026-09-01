@@ -19,6 +19,7 @@ const OUTPUT            = path.join(__dirname, 'index.html');
 const HOLDINGS_DIR      = path.join(__dirname, 'content', 'holdings');
 const HOMEPAGE_FILE     = path.join(__dirname, 'content', 'homepage.json');
 const ABOUT_FILE        = path.join(__dirname, 'content', 'about.json');
+const PODCAST_FILE      = path.join(__dirname, 'content', 'podcast.json');
 const COMING_SOON_FILE  = path.join(__dirname, 'content', 'coming-soon.json');
 const SECTIONS_DIR      = path.join(__dirname, 'content', 'sections');
 const PARTIALS_DIR      = path.join(__dirname, 'partials');
@@ -149,6 +150,21 @@ function loadHomepage() {
     return JSON.parse(fs.readFileSync(HOMEPAGE_FILE, 'utf8'));
   } catch (e) {
     console.error(`Invalid JSON in ${HOMEPAGE_FILE}: ${e.message}`);
+    return {};
+  }
+}
+
+// ── Load content/podcast.json (headline, description, optional
+//    featured episode photo for the homepage's Rare Book Chat section) ──
+function loadPodcast() {
+  if (!fs.existsSync(PODCAST_FILE)) {
+    console.error(`Podcast content file not found at ${PODCAST_FILE}`);
+    return {};
+  }
+  try {
+    return JSON.parse(fs.readFileSync(PODCAST_FILE, 'utf8'));
+  } catch (e) {
+    console.error(`Invalid JSON in ${PODCAST_FILE}: ${e.message}`);
     return {};
   }
 }
@@ -311,7 +327,11 @@ async function renderHoldings(holdings) {
 }
 
 // ── Build the latest episode HTML block ─────────────────────
-function renderLatestEpisode(item) {
+// ── Build the latest episode HTML block. When a featured episode photo
+//    is set in content/podcast.json, it renders as a fixed-width column
+//    (photo + caption) beside the episode text; otherwise the episode
+//    text renders exactly as it always has, full width. ──────────────
+async function renderLatestEpisode(item, podcastData) {
   const title   = clean(getTag(item, 'title')) || 'Latest Episode';
   const desc    = clean(getTag(item, 'description'));
   const audio   = (item.match(/<enclosure[^>]+url="([^"]+)"/i) || [])[1] || '';
@@ -322,13 +342,33 @@ function renderLatestEpisode(item) {
       })
     : '';
 
-  return `<div class="latest-episode">
-      <span class="latest-label">Latest Episode</span>
+  const innerHtml = `<span class="latest-label">Latest Episode</span>
       <p class="latest-title">${title}</p>
       ${date ? `<span class="latest-date">${date}</span>` : ''}
       ${desc ? `<p class="latest-desc">${desc}</p>
       <button class="latest-more" onclick="toggleDesc(this)">Read more</button>` : ''}
-      ${audio ? `<audio class="latest-audio" controls preload="none" src="${audio}"></audio>` : ''}
+      ${audio ? `<audio class="latest-audio" controls preload="none" src="${audio}"></audio>` : ''}`;
+
+  const episodeImage = podcastData && podcastData.episode_image;
+  if (!episodeImage) {
+    return `<div class="latest-episode">
+      ${innerHtml}
+    </div>`;
+  }
+
+  const imgHtml = await cmsImageHtml(episodeImage, podcastData.episode_alt || '', 'large');
+  const captionHtml = podcastData.episode_caption
+    ? `<p class="story-hero-caption">${podcastData.episode_caption}</p>`
+    : '';
+
+  return `<div class="latest-episode latest-episode-with-photo">
+      <div class="latest-episode-photo">
+        ${imgHtml}
+        ${captionHtml}
+      </div>
+      <div class="latest-episode-text">
+        ${innerHtml}
+      </div>
     </div>`;
 }
 
@@ -1180,6 +1220,9 @@ async function build() {
   const heroHtml = await renderHero(homepageData);
   const introHtml = renderIntro(homepageData);
 
+  console.log('Loading podcast section content...');
+  const podcastData = loadPodcast();
+
   console.log('Loading holdings...');
   const holdings = loadHoldings();
   const holdingsHtml = await renderHoldings(holdings);
@@ -1208,7 +1251,7 @@ async function build() {
 
   console.log(`Found ${items.length} episodes. Using most recent.`);
 
-  const latestHtml = renderLatestEpisode(items[0]);
+  const latestHtml = await renderLatestEpisode(items[0], podcastData);
 
   let output = fs.readFileSync(TEMPLATE, 'utf8');
 
@@ -1226,6 +1269,14 @@ async function build() {
   }
   if (!output.includes('<!-- INTRO -->')) {
     console.error('Template is missing the <!-- INTRO --> placeholder.');
+    process.exit(1);
+  }
+  if (!output.includes('<!-- PODCAST_HEADLINE -->')) {
+    console.error('Template is missing the <!-- PODCAST_HEADLINE --> placeholder.');
+    process.exit(1);
+  }
+  if (!output.includes('<!-- PODCAST_DESC -->')) {
+    console.error('Template is missing the <!-- PODCAST_DESC --> placeholder.');
     process.exit(1);
   }
   if (!output.includes('<!-- SECTIONS -->')) {
@@ -1253,6 +1304,8 @@ async function build() {
   output = output.replace('<!-- HOLDINGS -->', holdingsHtml);
   output = output.replace('<!-- HERO_IMAGE -->', heroHtml);
   output = output.replace('<!-- INTRO -->', introHtml);
+  output = output.replace('<!-- PODCAST_HEADLINE -->', podcastData.headline || 'My podcast');
+  output = output.replace('<!-- PODCAST_DESC -->', podcastData.description || '');
   output = output.replace('<!-- SECTIONS -->', sectionsHtml);
   output = output.replace('<!-- COMING_SOON -->', comingSoonHtml);
   output = output.replace('<!-- MASTHEAD -->', mastheadHtml);
