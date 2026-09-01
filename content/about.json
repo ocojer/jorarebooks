@@ -21,12 +21,16 @@
       "quote": ""
     },
     {
+      "space_above": true,
       "heading": "",
       "image": "",
       "image_alt": "",
       "image_caption": "",
-      "video": "",
+      "video": "https://youtu.be/tcABhDUp_Z4?si=rm_VhCg-I8EVcAX9",
+      "video_cover_image": "",
+      "video_cover_alt": "",
       "video_caption": "",
+      "video_description": "A few years ago I appeared on Pawn Stars to sell a July 1776 printing of the Declaration of Independence. The episode is one of the most viewed in the show's history. I sold it for $1.45m. A comparable copy recently sold for $5.6m. You can't win them all.",
       "text": "",
       "quote": ""
     }

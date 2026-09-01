@@ -268,6 +268,7 @@ collections:
             widget: "list"
             hint: "Add blocks in order, top to bottom — the same system as a holding's Highlights. Add a heading to start a new section (this puts a break above it); leave heading blank to continue straight on from the block above, which is how most of the page will work — just a paragraph, then another paragraph. Drop in an image or a video wherever it belongs in the read, each with its own caption. Within one block, fields always render in this order: heading, image, image caption, video, video caption, paragraph, quote."
             fields:
+              - {label: "Add extra space above this block (optional)", name: "space_above", widget: "boolean", required: false, default: false, hint: "Adds a quiet gap before this block, with no heading or rule — useful for signaling a shift in tone or topic without spelling it out."}
               - {label: "Heading (optional)", name: "heading", widget: "string", required: false, hint: "Only needed if you want a named section break, e.g. \"How I got into this.\" Leave blank to just continue the page."}
               - {label: "Image (optional)", name: "image", widget: "image", required: false}
               - {label: "Image alt text (optional)", name: "image_alt", widget: "string", required: false}
@@ -303,6 +304,7 @@ collections:
         widget: "list"
         hint: "Same block system as the About page. Add a heading to start a new section (this puts a break above it); leave heading blank to continue straight on from the block above. Within one block, fields always render in this order: heading, image, image caption, video, video caption, paragraph, quote."
         fields:
+          - {label: "Add extra space above this block (optional)", name: "space_above", widget: "boolean", required: false, default: false, hint: "Adds a quiet gap before this block, with no heading or rule — useful for signaling a shift in tone or topic without spelling it out."}
           - {label: "Heading (optional)", name: "heading", widget: "string", required: false, hint: "Only needed if you want a named section break. Leave blank to just continue the page."}
           - {label: "Image (optional)", name: "image", widget: "image", required: false}
           - {label: "Image alt text (optional)", name: "image_alt", widget: "string", required: false}

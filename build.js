@@ -724,6 +724,7 @@ async function renderAboutPage(about, mastheadHtml, footerHtml) {
     // Backward-compatible: older entries may just be plain strings.
     const block = typeof b === 'string' ? { text: b } : b;
     const parts = [];
+    if (block.space_above && i > 0) parts.push(`      <div class="story-facet-space-above"></div>`);
     if (block.heading && i > 0) parts.push(`      <hr class="story-facet-divider">`);
     if (block.heading) parts.push(`      <h2 class="story-subhead">${block.heading}</h2>`);
     if (block.image) {
@@ -795,6 +796,7 @@ async function renderContentPage(page, mastheadHtml, footerHtml) {
   const facetParts = await Promise.all(blocks.map(async (b, i) => {
     const block = typeof b === 'string' ? { text: b } : b;
     const parts = [];
+    if (block.space_above && i > 0) parts.push(`      <div class="story-facet-space-above"></div>`);
     if (block.heading && i > 0) parts.push(`      <hr class="story-facet-divider">`);
     if (block.heading) parts.push(`      <h2 class="story-subhead">${block.heading}</h2>`);
     if (block.image) {

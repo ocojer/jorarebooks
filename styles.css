@@ -951,6 +951,13 @@ picture { display: contents; }
       margin: clamp(2.5rem, 5vw, 3.25rem) 0;
     }
 
+    /* A quiet gap before a block — same spacing rhythm as the divider
+       above, but with no visible rule. For signaling a shift in tone
+       or topic without a heading or a hard line breaking it up. */
+    .story-facet-space-above {
+      margin-top: clamp(2.5rem, 5vw, 3.25rem);
+    }
+
     .story-quote {
       font-family: var(--font-display);
       font-style: italic;
