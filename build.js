@@ -1222,7 +1222,20 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
   if (inquireOnly || !showPrice) {
     actionsHtml = `<button class="shop-btn-inquire" onclick="openModal('${title.replace(/'/g, "\\'")}')">Inquire</button>`;
   } else {
-    actionsHtml = `<button class="shop-btn-cart" onclick="alert('Cart coming soon')">Add to Cart</button>
+    // Display-only snapshot for the cart drawer — id is the Airtable
+    // record ID, which is what the checkout function uses to re-fetch
+    // the authoritative price and availability. Never trust priceDisplay
+    // for money math beyond the drawer's running subtotal.
+    const cartItemJson = JSON.stringify({
+      id: record.id,
+      slug,
+      title,
+      author: authorDisplay,
+      price: priceDisplay,
+      thumb: mainVariant ? mainVariant.jpg : '',
+      url: `/shop/${slug}/`
+    }).replace(/"/g, '&quot;');
+    actionsHtml = `<button class="shop-btn-cart" onclick="addToCart(${cartItemJson})">Add to Cart</button>
       <button class="shop-btn-inquire" onclick="openModal('${title.replace(/'/g, "\\'")}')">Inquire</button>`;
   }
 
@@ -1354,13 +1367,23 @@ function renderShopPage(records, mastheadHtml, footerHtml, siteInfo) {
     const subject = encodeURIComponent(`Inquiry: ${title}`);
     const email = siteInfo.email || 'info@jorarebooks.com';
 
+    const cartItemJson = JSON.stringify({
+      id: r.id,
+      slug,
+      title,
+      author,
+      price: priceDisplay || '',
+      thumb: imgVariant ? imgVariant.jpg : '',
+      url: `/shop/${slug}/`
+    }).replace(/"/g, '&quot;');
+
     // Use a div with onclick rather than <a> wrapping other <a> tags
     // (nested links are invalid HTML and break browser rendering)
     const rightHtml = `
       ${isArchive ? '<span class="list-badge">Archive</span>' : ''}
       ${priceDisplay ? `<span class="list-price">${priceDisplay}</span>` : ''}
       ${showPrice
-        ? `<button class="list-btn list-btn-cart" onclick="event.stopPropagation();alert('Cart coming soon')">Add to Cart</button>`
+        ? `<button class="list-btn list-btn-cart" onclick="event.stopPropagation();addToCart(${cartItemJson})">Add to Cart</button>`
         : `<a href="mailto:${email}?subject=${subject}" class="list-btn list-btn-inquire" onclick="event.stopPropagation()">Inquire</a>`}
       <a href="/shop/${slug}/" class="list-view" onclick="event.stopPropagation()">View →</a>`;
 
