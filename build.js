@@ -1218,6 +1218,10 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
   const priceNote = siteInfo.shipping_note
     ? `<span class="shop-item-price-note">${siteInfo.shipping_note}</span>` : '';
 
+  // Main image variant, needed early for the cart button's item
+  // snapshot below, and again later for the main hero image.
+  const mainVariant = firstImageVariant(record, 'IMAGE(S)', 'large');
+
   let actionsHtml = '';
   if (inquireOnly || !showPrice) {
     actionsHtml = `<button class="shop-btn-inquire" onclick="openModal('${title.replace(/'/g, "\\'")}')">Inquire</button>`;
@@ -1242,8 +1246,6 @@ function renderShopItemPage(record, allRecords, mastheadHtml, footerHtml, siteIn
   // Contact block
   const contactHtml = renderContactBlock(siteInfo);
 
-  // Main image — large variant, matching what the thumbnail strip swaps to
-  const mainVariant = firstImageVariant(record, 'IMAGE(S)', 'large');
   const mainImgHtml = pictureTag(mainVariant, title, 'loading="eager"');
 
   // Related items — same category, excluding self, up to 4
