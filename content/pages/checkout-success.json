@@ -1,0 +1,9 @@
+{
+  "title": "Thank you",
+  "slug": "checkout/success",
+  "content_blocks": [
+    {
+      "text": "Your order has been received. I'll follow up shortly to confirm details and arrange shipping.\n\nQuestions in the meantime? Reach me directly at jeremy@jorarebooks.com."
+    }
+  ]
+}
