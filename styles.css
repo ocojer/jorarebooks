@@ -1568,6 +1568,7 @@ picture { display: contents; }
       margin-top: 1rem; transition: opacity 0.2s;
     }
     .cart-checkout-btn:hover { opacity: 0.85; }
+    .cart-checkout-btn:disabled { opacity: 0.6; cursor: default; }
     .cart-continue {
       display: block; text-align: center;
       font-size: 0.72rem; color: var(--light); text-decoration: underline;

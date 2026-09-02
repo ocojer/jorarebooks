@@ -119,13 +119,45 @@ function closeCart() {
   document.body.style.overflow = '';
 }
 
-// Stage 2 wires this up to /.netlify/functions/create-checkout-session.
-// For now it's a clear placeholder rather than a silent dead end.
 async function startCheckout() {
+  const cart = getCart();
+  if (!cart.length) return;
+
   const errorEl = document.getElementById('cart-checkout-error');
-  if (errorEl) {
-    errorEl.style.display = '';
-    errorEl.textContent = 'Checkout is almost ready — not wired up quite yet.';
+  const btn = document.querySelector('.cart-checkout-btn');
+  if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Starting checkout...'; }
+
+  try {
+    const response = await fetch('/.netlify/functions/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: cart.map(item => item.id) })
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Prune anything the server says is gone or already sold, so the
+      // drawer reflects reality instead of re-offering a dead item.
+      if (Array.isArray(data.unavailable) && data.unavailable.length) {
+        const staleIds = data.unavailable.map(u => u.id);
+        saveCart(getCart().filter(item => !staleIds.includes(item.id)));
+      }
+      if (errorEl) {
+        errorEl.style.display = '';
+        errorEl.textContent = data.error || 'Something went wrong. Please try again.';
+      }
+      return;
+    }
+
+    window.location.href = data.url;
+  } catch (e) {
+    if (errorEl) {
+      errorEl.style.display = '';
+      errorEl.textContent = 'Could not reach checkout. Check your connection and try again.';
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Checkout'; }
   }
 }
 
